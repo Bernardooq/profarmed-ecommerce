@@ -1,0 +1,59 @@
+"""
+Schemas para Edicion de Pedidos
+
+Define la estructura de datos para editar pedidos existentes:
+- OrderItemEdit: Para modificar items individuales
+- OrderEditRequest: Para la solicitud completa de edicion
+
+Solo marketing y admin pueden usar estas operaciones.
+"""
+
+from pydantic import BaseModel, Field
+from typing import List, Optional
+from uuid import UUID
+
+
+class OrderItemEdit(BaseModel):
+    """
+    Schema para editar un item de pedido
+    
+    - Si order_item_id es None, se crea un nuevo item
+    - Si order_item_id existe, se actualiza ese item
+    - Los items no incluidos en la lista se eliminan
+    """
+    order_item_id: Optional[UUID] = None  # None para nuevos items
+    product_id: str = Field(..., description="ID del producto")
+    quantity: int = Field(..., gt=0, description="Cantidad del producto")
+
+
+class OrderEditRequest(BaseModel):
+    """
+    Schema para solicitud de edicion de pedido completo
+    
+    Incluye la lista de items que deberia tener el pedido.
+    Marketing/Admin puede:
+    - Agregar nuevos productos
+    - Eliminar productos existentes
+    - Cambiar cantidades
+    - Modificar costo de envío
+    
+    Los precios se recalculan automaticamente segun la lista del cliente.
+    """
+    items: List[OrderItemEdit] = Field(..., description="Lista de items del pedido")
+    shipping_cost: Optional[float] = Field(None, ge=0, description="Costo de envío")
+    shipping_address_number: Optional[int] = Field(None, ge=1, le=3, description="Número de dirección de envío (1, 2 o 3)")
+    assignment_notes: Optional[str] = Field(None, description="Notas al vendedor (solo staff interno)")
+    invoice_type: Optional[str] = Field(None, description="Tipo de comprobante: factura, remision, etc.")
+    is_synced: Optional[bool] = Field(None, description="Estado de sincronización ERP")
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "items": [
+                    {"order_item_id": None, "product_id": "PROD123", "quantity": 5},
+                    {"order_item_id": "550e8400-e29b-41d4-a716-446655440000", "product_id": "PROD456", "quantity": 3}
+                ],
+                "shipping_cost": 150.00
+            }
+        }
+    }

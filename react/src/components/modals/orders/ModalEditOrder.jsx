@@ -1,0 +1,309 @@
+import { useState, useEffect } from 'react';
+import ErrorMessage from '../../common/ErrorMessage';
+import { formatCurrency } from '../../../utils/formatUtils';
+import OrderItemsTable from './OrderItemsTable';
+import ProductSearchGrid from './ProductSearchGrid';
+import SimilarProductsModal from './SimilarProductsModal';
+import StockConflictBanner from './StockConflictBanner';
+import { usePermissions } from '../../../hooks/usePermissions';
+
+export default function ModalEditOrder({ visible, order, onClose, onSave }) {
+    const { can, isAdmin } = usePermissions();
+    const [items, setItems] = useState([]);
+    const [shippingCost, setShippingCost] = useState(0);
+    const [assignmentNotes, setAssignmentNotes] = useState('');
+    const [invoiceType, setInvoiceType] = useState('factura');
+    const [shippingAddressNumber, setShippingAddressNumber] = useState(1);
+    const [isSynced, setIsSynced] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [showSimilarModal, setShowSimilarModal] = useState(false);
+    const [selectedProductForSimilar, setSelectedProductForSimilar] = useState(null);
+    const [stockConflict, setStockConflict] = useState(null);
+
+    useEffect(() => {
+        if (order && order.items) {
+            setItems(order.items.map(item => ({
+                order_item_id: item.order_item_id,
+                product_id: item.product?.product_id || item.product_id,
+                product_name: item.product?.name || 'Producto',
+                quantity: item.quantity,
+                final_price: item.final_price,
+                stock_count: item.product?.stock_count || 0,
+            })));
+            setShippingCost(order.shipping_cost || 0);
+            setAssignmentNotes(order.assignment_notes || '');
+            setInvoiceType(order.invoice_type || 'factura');
+            setShippingAddressNumber(order.shipping_address_number || 1);
+            setIsSynced(Boolean(order.is_synced));
+        }
+    }, [order]);
+
+    if (!visible || !order) return null;
+
+    const customerId = order.customer_id || order.customer?.customer_id;
+
+    const handleQuantityChange = (index, newQuantity) => {
+        const newQty = Math.max(1, parseInt(newQuantity) || 1);
+        const item = items[index];
+        const stock = item.stock_count || 0;
+
+        // Siempre actualizar para que el input no quede bloqueado
+        const updated = [...items];
+        updated[index].quantity = newQty;
+        setItems(updated);
+
+        if (stock > 0 && newQty > stock) {
+            const doSet = (qty) => {
+                setItems(prev => { const u = [...prev]; u[index].quantity = qty; return u; });
+                setStockConflict(null);
+            };
+            setStockConflict({
+                productName: item.product_name,
+                stock,
+                existingQty: item.quantity,
+                quantity: newQty,
+                totalQty: newQty,
+                maxCanAdd: stock,
+                doAdd: doSet,
+            });
+        } else {
+            setStockConflict(null);
+        }
+    };
+
+    const handleRemoveItem = (index) => {
+        if (!window.confirm('¿Eliminar este producto del pedido?')) return;
+        setItems(items.filter((_, i) => i !== index));
+    };
+
+    const handleQuantityBlur = () => {
+        if (stockConflict) {
+            document.querySelector('.stock-conflict-banner')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    };
+
+    const handleAddProductToOrder = (product, quantity = 1) => {
+        const stock = product.stock_count || 0;
+        const existingIndex = items.findIndex(item => item.product_id === product.product_id);
+        const existingQty = existingIndex >= 0 ? items[existingIndex].quantity : 0;
+        const totalQty = existingQty + quantity;
+
+        const doAdd = (qtyToAdd) => {
+            if (existingIndex >= 0) {
+                const updated = [...items];
+                updated[existingIndex].quantity += qtyToAdd;
+                setItems(updated);
+            } else {
+                setItems(prev => [...prev, { order_item_id: null, product_id: product.product_id, product_name: product.name, quantity: qtyToAdd, final_price: product.final_price, stock_count: stock }]);
+            }
+            setStockConflict(null);
+        };
+
+        const maxCanAdd = Math.max(0, stock - existingQty);
+
+        if (stock === 0 || totalQty > stock) {
+            setStockConflict({
+                productName: product.name,
+                stock,
+                existingQty,
+                quantity,
+                totalQty,
+                maxCanAdd,
+                doAdd,
+            });
+            return;
+        }
+
+        doAdd(quantity);
+    };
+
+    const handleShowSimilar = (product) => { setSelectedProductForSimilar(product); setShowSimilarModal(true); };
+
+    const handleSave = async () => {
+        if (items.length === 0) { setError('El pedido debe tener al menos un producto'); return; }
+        setLoading(true); setError(null);
+        try {
+            await onSave(order.order_id, {
+                items: items.map(item => ({
+                    order_item_id: item.order_item_id,
+                    product_id: item.product_id,
+                    quantity: item.quantity
+                })),
+                shipping_cost: shippingCost,
+                assignment_notes: assignmentNotes,
+                invoice_type: invoiceType,
+                shipping_address_number: shippingAddressNumber,
+                is_synced: isSynced
+            });
+            onClose();
+        } catch (err) { setError(err.message || 'Error al guardar cambios'); }
+        finally { setLoading(false); }
+    };
+
+    const customerInfo = order.customerInfo || {};
+    const addresses = [];
+    if (customerInfo.address_1?.trim()) {
+        addresses.push({ number: 1, text: `Dirección 1: ${customerInfo.address_1.trim()}` });
+    }
+    if (customerInfo.address_2?.trim()) {
+        addresses.push({ number: 2, text: `Dirección 2: ${customerInfo.address_2.trim()}` });
+    }
+    if (customerInfo.address_3?.trim()) {
+        addresses.push({ number: 3, text: `Dirección 3: ${customerInfo.address_3.trim()}` });
+    }
+    if (addresses.length === 0) {
+        addresses.push({ number: 1, text: 'Dirección 1 (No registrada)' });
+    }
+
+    return (
+        <>
+            <div className="modal-overlay" onClick={onClose}>
+                <div className="modal modal--lg" onClick={(e) => e.stopPropagation()}>
+                    <div className="modal__header">
+                        <h2>Editar Pedido #{order.order_id}</h2>
+                        <button className="modal__close" onClick={onClose} aria-label="Cerrar modal">&times;</button>
+                    </div>
+                    <div className="modal__body">
+                        {error && <ErrorMessage error={error} onDismiss={() => setError(null)} />}
+
+                        <div className="mb-4">
+                            <p><strong>Cliente:</strong> {order.customer?.full_name || 'N/A'}</p>
+                            <p><strong>Estado:</strong> {order.status}</p>
+                            <div className="form-group mt-2">
+                                <label className="form-group__label" htmlFor="edit-shipping-address">Dirección de Envío:</label>
+                                {(isAdmin || can('orders.edit') || can('orders.approve')) ? (
+                                    <select
+                                        id="edit-shipping-address"
+                                        className="input"
+                                        value={shippingAddressNumber}
+                                        onChange={(e) => setShippingAddressNumber(parseInt(e.target.value))}
+                                        disabled={loading}
+                                    >
+                                        {addresses.map((addr) => (
+                                            <option key={addr.number} value={addr.number}>
+                                                {addr.text}
+                                            </option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <div className="input-static">
+                                        {addresses.find(a => a.number === shippingAddressNumber)?.text || 'Dirección de envío no registrada'}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="form-group mt-2">
+                                <label className="form-group__label" htmlFor="edit-invoice-type">Tipo de Comprobante:</label>
+                                <select
+                                    id="edit-invoice-type"
+                                    className="input"
+                                    value={invoiceType}
+                                    onChange={(e) => setInvoiceType(e.target.value)}
+                                    disabled={loading}
+                                >
+                                    <option value="factura">Factura</option>
+                                    <option value="remision">Remisión</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <OrderItemsTable items={items} onQuantityChange={handleQuantityChange} onQuantityBlur={handleQuantityBlur} onRemoveItem={handleRemoveItem} loading={loading} />
+
+                        {/* Resumen del Pedido */}
+                        <div className="order-summary mt-4">
+                            <div className="order-summary__row">
+                                <span>Subtotal Productos:</span>
+                                <span>{formatCurrency(items.reduce((sum, item) => sum + (item.quantity * item.final_price), 0))}</span>
+                            </div>
+                            <div className="order-summary__row">
+                                <span>Costo de Envío:</span>
+                                <input
+                                    id="shipping-cost"
+                                    type="number"
+                                    min="0"
+                                    step="1.00"
+                                    value={shippingCost}
+                                    onChange={(e) => {
+                                        const value = parseFloat(e.target.value);
+                                        setShippingCost(isNaN(value) || value < 0 ? 0 : value);
+                                    }}
+                                    placeholder="0.00"
+                                    className="input input--sm"
+                                />
+                            </div>
+                            <div className="order-summary__row order-summary__total">
+                                <strong>Total:</strong>
+                                <span className="order-summary__total-amount">
+                                    {formatCurrency(items.reduce((sum, item) => sum + (item.quantity * item.final_price), 0) + Number(shippingCost))}
+                                </span>
+                            </div>
+                        </div>
+
+                        {stockConflict && (
+                            <StockConflictBanner
+                                conflict={stockConflict}
+                                onOverride={() => stockConflict.doAdd(stockConflict.quantity)}
+                                onAdjust={() => stockConflict.doAdd(stockConflict.maxCanAdd)}
+                                onCancel={() => setStockConflict(null)}
+                            />
+                        )}
+                        <ProductSearchGrid customerId={customerId} onAddToOrder={handleAddProductToOrder} onShowSimilar={handleShowSimilar} />
+
+                        <p className="text-muted text-sm mt-3">
+                            Nota: Los precios se recalcularán automáticamente según la lista de precios del cliente.
+                        </p>
+
+                        {/* Notas del Cliente (solo lectura) */}
+                        {order.order_notes && (
+                            <div className="form-group mt-4">
+                                <label className="form-group__label">Notas del Cliente (no editable):</label>
+                                <div className="order-notes">{order.order_notes}</div>
+                            </div>
+                        )}
+
+                        {/* Notas al Vendedor (editable) */}
+                        <div className="form-group mt-3">
+                            <label className="form-group__label" htmlFor="edit-assignment-notes">
+                                Notas al Vendedor 📋 <span className="text-muted">(Solo staff interno)</span>
+                            </label>
+                            <textarea
+                                id="edit-assignment-notes"
+                                className="input"
+                                rows={2}
+                                value={assignmentNotes}
+                                onChange={(e) => setAssignmentNotes(e.target.value)}
+                                placeholder="Ej: Cliente VIP, entregar hoy, requiere factura..."
+                                disabled={loading}
+                            />
+                        </div>
+
+                        {/* Control de Sincronización con ERP */}
+                        {(isAdmin || can('orders.edit') || can('orders.status')) && (
+                            <div className="form-group form-group--checkbox mt-3">
+                                <input
+                                    className="checkbox"
+                                    type="checkbox"
+                                    id="edit-is-synced"
+                                    checked={isSynced}
+                                    onChange={(e) => setIsSynced(e.target.checked)}
+                                    disabled={loading}
+                                />
+                                <label htmlFor="edit-is-synced">
+                                    ⚡ Sincronizado con ERP
+                                </label>
+                            </div>
+                        )}
+                    </div>
+                    <div className="modal__footer">
+                        <button type="button" className="btn btn--secondary" onClick={onClose} disabled={loading}>Cancelar</button>
+                        <button type="button" className="btn btn--primary" onClick={handleSave} disabled={loading || items.length === 0}>
+                            {loading ? 'Guardando...' : 'Guardar Cambios'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <SimilarProductsModal visible={showSimilarModal} product={selectedProductForSimilar} customerId={customerId} onAddToOrder={handleAddProductToOrder} onClose={() => setShowSimilarModal(false)} />
+        </>
+    );
+}

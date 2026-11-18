@@ -1,0 +1,46 @@
+# Profarmed - Robots.txt
+# Plataforma B2B de distribución y comercio electrónico
+
+User-agent: *
+
+# Permitir páginas públicas y catálogo storefront
+Allow: /$
+Allow: /catalogo
+Allow: /catalogo-publico
+Allow: /catalogo/producto/
+Allow: /producto/
+Allow: /about
+Allow: /contact
+Allow: /terms
+Allow: /privacy
+Allow: /quiero-ser-cliente
+Allow: /images/
+Allow: /pwa-icons/
+Allow: /assets/
+Allow: /favicon.webp
+
+# Rutas privadas, autenticación y operación interna
+Disallow: /login
+Disallow: /products
+Disallow: /promos
+Disallow: /orders
+Disallow: /profile
+Disallow: /cart
+Disallow: /checkout
+Disallow: /favorites
+Disallow: /support
+Disallow: /dashboard
+Disallow: /userdashboard
+Disallow: /terminal
+Disallow: /admin
+
+# Bloquear API y archivos de desarrollo/compilación
+Disallow: /api/
+Disallow: /src/
+Disallow: /node_modules/
+Disallow: /*.json$
+Disallow: /*.map$
+
+# Sitemaps (estático base + dinámico en vivo con productos públicos si está activo el storefront)
+Sitemap: https://profarmed.com.mx/sitemap.xml
+Sitemap: https://apiecommerce.profarmed.com.mx/sitemap.xml

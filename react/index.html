@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <!-- Google tag (gtag.js) -->
+  <!--
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-..."></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-...');
+  </script>
+  -->
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+  <!-- Prevenir caché obsoleto del HTML en PWA / navegadores -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <!-- Meta Tags Básicos -->
+  <meta data-rh="true" name="description"
+    content="%VITE_BRAND_NAME% - Plataforma B2B de comercio electrónico y distribución. Solución integral para la gestión de catálogos, listas de precios y pedidos en línea." />
+  <meta name="keywords" content="plataforma B2B, comercio electrónico B2B, ecommerce B2B, catálogo digital, pedidos en línea, distribución comercial, gestión de listas de precios" />
+  <meta name="author" content="%VITE_BRAND_NAME%" />
+  <meta name="theme-color" content="%BRAND_THEME_COLOR%" />
+  <meta property="og:site_name" content="%VITE_BRAND_NAME%" />
+  <meta property="og:locale" content="es_MX" />
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/webp" href="/favicon.webp" />
+
+  <!-- iOS Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="%VITE_BRAND_NAME%" />
+
+  <!-- iOS Icons -->
+  <link rel="apple-touch-icon" href="/pwa-icons/icon-152x152.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="/pwa-icons/icon-152x152.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/pwa-icons/icon-192x192.png" />
+  <link rel="apple-touch-icon" sizes="167x167" href="/pwa-icons/icon-192x192.png" />
+
+  <!-- iOS Splash Screens (opcional pero recomendado) -->
+  <link rel="apple-touch-startup-image" href="/pwa-icons/icon-512x512.png" />
+
+  <!-- Android/Chrome -->
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <!-- Microsoft -->
+  <meta name="msapplication-TileColor" content="%BRAND_THEME_COLOR%" />
+  <meta name="msapplication-TileImage" content="/pwa-icons/icon-144x144.png" />
+
+  <!-- Preconnect a API & Google Fonts -->
+  <link rel="preconnect" href="%BRAND_API_BASE_URL%" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <title data-rh="true">%VITE_BRAND_NAME% - Plataforma B2B de Comercio Electrónico</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
+</html>

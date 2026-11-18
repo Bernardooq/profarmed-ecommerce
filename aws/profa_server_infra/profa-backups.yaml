@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Stack independiente para configurar AWS Backup en una instancia EC2 existente.
+  Incluye retención semanal (30 días) e incrementales diarios (7 días).
+
+Parameters:
+  InstanceId:
+    Type: String
+    Default: 'i-0d0b0ba65ada94246'
+    Description: "El ID de la instancia EC2 que se va a respaldar (ej. i-0abcd1234efgh5678)."
+    
+  AppName:
+    Type: String
+    Default: 'Profa-AlphaERP' # <-- SUSTITUYE ESTO o déjalo así si es para este ERP
+    Description: "Nombre del proyecto o cliente (ej. AlphaERP-Cliente)."
+    
+  AppId:
+    Type: Number
+    Default: 1 # <-- SUSTITUYE ESTO por el ID numérico de tu cliente
+    Description: "ID único del proyecto (usado para etiquetado y control de costos)."
+
+Resources:
+  # ---------------------------------------------------------
+  # 1. BÓVEDA DE RESPALDOS (Backup Vault)
+  # ---------------------------------------------------------
+  BackupVault:
+    Type: AWS::Backup::BackupVault
+    Properties:
+      BackupVaultName: !Sub "${AppName}-Vault"
+      BackupVaultTags:
+        appname: !Ref AppName
+        appid: !Ref AppId
+
+  # ---------------------------------------------------------
+  # 2. ROL DE IAM PARA AWS BACKUP
+  # ---------------------------------------------------------
+  BackupRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AppName}-BackupRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: backup.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup
+        - arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForRestores
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  # ---------------------------------------------------------
+  # 3. PLAN DE RESPALDOS (Backup Plan)
+  # ---------------------------------------------------------
+  BackupPlan:
+    Type: AWS::Backup::BackupPlan
+    Properties:
+      BackupPlan:
+        BackupPlanName: !Sub "${AppName}-BackupPlan"
+        BackupPlanRule:
+          # Puntos de restauración incrementales diarios (Retención: 7 días)
+          - RuleName: "Diario-Incremental"
+            TargetBackupVault: !Ref BackupVault
+            ScheduleExpression: "cron(0 6 * * ? *)" # 06:00 UTC (Media noche aprox. en México)
+            Lifecycle:
+              DeleteAfterDays: 7
+          
+          # Respaldo Semanal (Retención: 30 días)
+          - RuleName: "Semanal"
+            TargetBackupVault: !Ref BackupVault
+            ScheduleExpression: "cron(0 6 ? * 1 *)" # Domingos a las 06:00 UTC
+            Lifecycle:
+              DeleteAfterDays: 30
+      BackupPlanTags:
+        appname: !Ref AppName
+        appid: !Ref AppId
+
+  # ---------------------------------------------------------
+  # 4. ASIGNACIÓN DE RECURSOS (Backup Selection)
+  # ---------------------------------------------------------
+  BackupSelection:
+    Type: AWS::Backup::BackupSelection
+    Properties:
+      BackupPlanId: !Ref BackupPlan
+      BackupSelection:
+        SelectionName: !Sub "${AppName}-ResourceSelection"
+        IamRoleArn: !GetAtt BackupRole.Arn
+        Resources:
+          # Se asigna la instancia EC2 específica por su ARN
+          - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/${InstanceId}"

@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Stack independiente para encender y apagar una instancia EC2 de lunes a viernes (8:00 AM a 7:00 PM).
+  Utiliza Amazon EventBridge Scheduler con invocación directa a la API de EC2 (Serverless, sin Lambdas).
+
+Parameters:
+  InstanceId:
+    Type: String
+    Default: 'i-0d0b0ba65ada94246'
+    Description: "El ID de la instancia EC2 a encender y apagar automáticamente."
+
+  AppName:
+    Type: String
+    Default: 'Profa-AlphaERP'
+    Description: "Nombre del proyecto o cliente para prefijo de recursos y tags."
+
+  AppId:
+    Type: Number
+    Default: 1
+    Description: "ID único del proyecto para control y etiquetado."
+
+  Timezone:
+    Type: String
+    Default: 'America/Mexico_City'
+    Description: "Zona horaria para el encendido y apagado (ej. America/Mexico_City)."
+
+Resources:
+  # ---------------------------------------------------------
+  # 1. ROL DE IAM PARA EVENTBRIDGE SCHEDULER
+  # ---------------------------------------------------------
+  SchedulerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AppName}-EC2SchedulerRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: EC2StartStopPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:StartInstances
+                  - ec2:StopInstances
+                Resource: !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/${InstanceId}"
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  # ---------------------------------------------------------
+  # 2. HORARIO DE ENCENDIDO (Lunes a Viernes 8:00 AM)
+  # ---------------------------------------------------------
+  StartSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: !Sub "${AppName}-StartSchedule"
+      Description: "Enciende la instancia EC2 de Lunes a Viernes a las 8:00 AM"
+      ScheduleExpression: "cron(0 8 ? * MON-FRI *)"
+      ScheduleExpressionTimezone: !Ref Timezone
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      State: "ENABLED"
+      Target:
+        Arn: "arn:aws:scheduler:::aws-sdk:ec2:startInstances"
+        RoleArn: !GetAtt SchedulerRole.Arn
+        Input: !Sub |
+          {
+            "InstanceIds": ["${InstanceId}"]
+          }
+
+  # ---------------------------------------------------------
+  # 3. HORARIO DE APAGADO (Lunes a Viernes 7:00 PM / 19:00 hrs)
+  # ---------------------------------------------------------
+  StopSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: !Sub "${AppName}-StopSchedule"
+      Description: "Apaga la instancia EC2 de Lunes a Viernes a las 7:00 PM (19:00 hrs)"
+      ScheduleExpression: "cron(0 19 ? * MON-FRI *)"
+      ScheduleExpressionTimezone: !Ref Timezone
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      State: "ENABLED"
+      Target:
+        Arn: "arn:aws:scheduler:::aws-sdk:ec2:stopInstances"
+        RoleArn: !GetAtt SchedulerRole.Arn
+        Input: !Sub |
+          {
+            "InstanceIds": ["${InstanceId}"]
+          }
+
+Outputs:
+  StartScheduleArn:
+    Description: "ARN del horario de encendido"
+    Value: !GetAtt StartSchedule.Arn
+
+  StopScheduleArn:
+    Description: "ARN del horario de apagado"
+    Value: !GetAtt StopSchedule.Arn

@@ -1,0 +1,292 @@
+"""
+CRUD y Gestión Integral de Clientes del E-Commerce (Customers & CustomerInfo):
+
+Funciones y Operaciones:
+- Operaciones CRUD de clientes (obtener por ID, username, email o lista paginada).
+- Autenticación con verificación de hash Argon2 y cambio de credenciales.
+- Búsqueda multi-campo (RFC, Razón Social, nombre, teléfono, username y email).
+- Asignación comercial de clientes a grupos de ventas (CustomerInfo.sales_group_id).
+- Vinculación con listas de precios personalizadas (CustomerInfo.price_list_id).
+- Sincronización de agentes de ventas del DBF (Customer.agent_id) con creación de grupos.
+
+Arquitectura y Reglas de Negocio:
+1. Separación de Usuarios:
+   - Los clientes (`customers`) están estrictamente separados de los usuarios internos (`users`).
+2. Información Comercial (`CustomerInfo`):
+   - Almacena RFC, Razón Social, múltiples direcciones de entrega (1, 2, 3), lista de precios y grupo de ventas.
+3. Permisos de Consulta y Ámbito Comercial (PBAC / RBAC Dinámico):
+   - Clientes B2B: Solo acceden a su propio perfil comercial, pedidos y credenciales.
+   - Colaboradores Internos (cualquier rol dinámico con clientes asignados): Consultan clientes restringidos al ámbito de sus grupos de ventas asignados (`GroupUser`).
+   - Superusuarios (`admin`) y colaboradores con permisos transversales (`customers.view_all`): Acceso global a todos los clientes del sistema.
+"""
+
+from fastapi import HTTPException, status
+from typing import List, Optional
+from datetime import datetime, timezone
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import or_, func
+
+from core.security import get_password_hash, verify_password
+from db.base import Customer, CustomerInfo
+from schemas.customer import CustomerCreate, CustomerUpdate
+from utils.sales_group_utils import assign_customer_to_agent_group
+
+
+"""Obtiene un cliente por ID con su informacion comercial"""
+def get_customer(db: Session, customer_id: int) -> Optional[Customer]:
+    return db.query(Customer).options(
+        joinedload(Customer.customer_info)  # Pre-cargar info comercial
+    ).filter(Customer.customer_id == customer_id).first()
+
+"""Obtiene un cliente por username"""
+def get_customer_by_username(db: Session, username: str) -> Optional[Customer]:
+    return db.query(Customer).filter(Customer.username == username).first()
+
+"""Obtiene un cliente por email"""
+def get_customer_by_email(db: Session, email: str) -> Optional[Customer]:
+    return db.query(Customer).filter(Customer.email == email).first()
+
+"""Obtiene lista de clientes con busqueda opcional"""
+def get_customers(db: Session, skip: int = 0, limit: int = 100, search: Optional[str] = None, 
+                  user_id: Optional[int] = None, user_role = None) -> List[Customer]:    
+    # Empezar con la query base
+    query = db.query(Customer)
+    
+    # Manejar joins necesarios de forma unificada y evaluar acceso global PBAC
+    has_perm = getattr(user_role, "has_permission", None)
+    if not has_perm and user_id:
+        from db.base import User
+        user_obj = db.query(User).filter(User.user_id == user_id).first()
+        if user_obj:
+            has_perm = user_obj.has_permission
+
+    has_global_access = (
+        (getattr(user_role, "role_slug", None) == "admin") or 
+        (getattr(user_role, "role", None) == "admin") or 
+        (getattr(user_role, "value", str(user_role)) == "admin") or
+        (callable(has_perm) and (
+            has_perm("system.admin") or 
+            has_perm("customers.view_all")
+        ))
+    )
+    needs_info = (not has_global_access) or bool(search)
+    
+    if needs_info:
+        # Usar outerjoin por defecto para no excluir clientes sin info comercial en búsquedas generales
+        # Pero si no posee acceso global, forzamos el filtro de grupo después
+        query = query.outerjoin(Customer.customer_info)
+    
+    # 1. Filtrar por alcance de grupo comercial (si no posee acceso global/admin)
+    if not has_global_access and user_id:
+        from crud.crud_commercial_group import get_user_groups
+        user_group_ids = get_user_groups(db, user_id)
+        
+        if not user_group_ids:
+            return []
+        
+        # Filtro de seguridad: solo clientes de sus grupos asignados
+        query = query.filter(CustomerInfo.sales_group_id.in_(user_group_ids))
+    
+    # 2. Aplicar búsqueda si existe
+    if search:
+        search_term = f"%{search.lower()}%"
+        query = query.filter(
+            or_(
+                func.lower(Customer.full_name).like(search_term),
+                func.lower(Customer.username).like(search_term),
+                func.lower(Customer.email).like(search_term),
+                func.lower(CustomerInfo.rfc).like(search_term)
+            )
+        )
+    
+    # Pre-cargar la relación para evitar N+1 queries al retornar
+    query = query.options(joinedload(Customer.customer_info))
+    
+    return query.offset(skip).limit(limit).all()
+
+"""Crea un nuevo cliente"""
+def create_customer(db: Session, customer: CustomerCreate) -> Customer:
+    # Crea un nuevo cliente
+    # Hashear contrasenia
+    hashed_password = get_password_hash(customer.password)
+    
+    db_customer = Customer(
+        customer_id=customer.customer_id,  # Proporcionado por admin
+        username=customer.username,
+        email=customer.email,
+        password_hash=hashed_password,
+        full_name=customer.full_name,
+        agent_id=customer.agent_id,  # Asignar agente
+        notificate=customer.notificate,
+        is_active=True
+    )
+    db.add(db_customer)
+    db.commit()
+    db.refresh(db_customer)
+    
+    # Auto-asignar al grupo del agente si tiene agent_id
+    if customer.agent_id:
+        assign_customer_to_agent_group(db, db_customer.customer_id, customer.agent_id)
+    
+    return db_customer
+
+"""Actualiza un cliente existente"""
+def update_customer(db: Session, customer_id: int, customer: CustomerUpdate) -> Optional[Customer]:
+    db_customer = get_customer(db, customer_id)
+    if not db_customer:
+        return None
+
+    update_data = customer.model_dump(exclude_unset=True)
+
+    # Validar unicidad del username
+    if "username" in update_data and update_data["username"] != db_customer.username:
+        existing_customer = (
+            db.query(Customer)
+            .filter(Customer.username == update_data["username"], Customer.customer_id != customer_id)
+            .first()
+        )
+        if existing_customer:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="El nombre de usuario ya está en uso por otro cliente."
+            )
+
+    # Validar unicidad del email
+    """if "email" in update_data and update_data["email"] != db_customer.email:
+        existing_email = (
+            db.query(Customer)
+            .filter(Customer.email == update_data["email"], Customer.customer_id != customer_id)
+            .first()
+        )
+        if existing_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="El correo electrónico ya está en uso por otro cliente."
+            )"""
+
+    # Hashear nueva contraseña
+    if "password" in update_data and update_data["password"]:
+        update_data["password_hash"] = get_password_hash(update_data["password"])
+        del update_data["password"]
+
+    # Guardar agent_id anterior para verificar cambios
+    old_agent_id = db_customer.agent_id
+
+    # Actualizar campos
+    for field, value in update_data.items():
+        setattr(db_customer, field, value)
+
+    # Sincronización consistente de seguridad backend
+    if update_data.get("is_locked") is False:
+        db_customer.is_locked = False
+        db_customer.failed_login_attempts = 0
+        db_customer.locked_at = None
+    elif update_data.get("is_locked") is True:
+        db_customer.is_locked = True
+        if not db_customer.locked_at:
+            db_customer.locked_at = datetime.now(timezone.utc)
+        if db_customer.failed_login_attempts < 5:
+            db_customer.failed_login_attempts = max(db_customer.failed_login_attempts, 5)
+
+    if "failed_login_attempts" in update_data:
+        attempts = update_data["failed_login_attempts"]
+        db_customer.failed_login_attempts = attempts
+        if attempts >= 5:
+            db_customer.is_locked = True
+            if not db_customer.locked_at:
+                db_customer.locked_at = datetime.now(timezone.utc)
+        elif attempts == 0 and update_data.get("is_locked") is not True:
+            db_customer.is_locked = False
+            db_customer.locked_at = None
+
+    db.commit()
+    db.refresh(db_customer)
+    
+    # Auto-asignar al grupo del agente si cambió el agent_id y es válido
+    if "agent_id" in update_data and update_data["agent_id"] != old_agent_id:
+        if update_data["agent_id"]:
+            assign_customer_to_agent_group(db, customer_id, update_data["agent_id"])
+    
+    return db_customer
+
+
+"""Elimina un cliente y su informacion"""
+def delete_customer(db: Session, customer_id: int) -> Optional[Customer]:    
+    db_customer = get_customer(db, customer_id)
+    if db_customer:
+        # Primero eliminar CustomerInfo para evitar errores de FK
+        db.query(CustomerInfo).filter(
+            CustomerInfo.customer_id == customer_id
+        ).delete()
+        
+        # Luego eliminar el Customer
+        db.delete(db_customer)
+        db.commit()
+    
+    return db_customer
+
+"""Autentica un cliente del e-commerce"""
+def authenticate_customer(db: Session, username: str,password: str) -> Optional[Customer]:
+    customer = get_customer_by_username(db, username)
+    if not customer:
+        return None
+    # Verificar contrasenia
+    if not verify_password(password, customer.password_hash):
+        return None
+    
+    return customer
+
+"""Obtiene la informacion comercial de un cliente"""
+def get_customer_info(db: Session, customer_id: int) -> Optional[CustomerInfo]:
+    return db.query(CustomerInfo).filter(
+        CustomerInfo.customer_id == customer_id
+    ).first()
+
+"""Busca la informacion comercial de un cliente"""
+def create_or_update_customer_info(db: Session, customer_info: CustomerInfo, customer_id: int) -> CustomerInfo:
+    existing_info = get_customer_info(db, customer_id)
+    
+    if existing_info:
+        # Actualizar existente y agregar como campo el id
+        update_data = customer_info.model_dump(exclude_unset=True)
+        
+        # PROTECCION: Si el cliente tiene agente asignado, NO permitir cambiar el grupo desde aqui
+        # El grupo debe ser gestionado por la asignacion de agente (update_customer)
+        # Esto evita que el frontend sobrescriba el grupo con datos viejos
+        current_customer = db.query(Customer).filter(Customer.customer_id == customer_id).first()
+        if current_customer and current_customer.agent_id and 'sales_group_id' in update_data:
+            del update_data['sales_group_id']
+            
+        for field, value in update_data.items():
+            if field != 'customer_info_id':  # No actualizar el ID
+                setattr(existing_info, field, value)
+        db.commit()
+        return existing_info
+    # Crear nuevo CustomerInfo
+    new_info = CustomerInfo(
+        customer_id=customer_id,
+        business_name=customer_info.business_name or '',
+        rfc=customer_info.rfc,
+        sales_group_id=customer_info.sales_group_id,
+        price_list_id=customer_info.price_list_id,
+        address_1=customer_info.address_1,
+        address_2=customer_info.address_2,
+        address_3=customer_info.address_3,
+        telefono_1=customer_info.telefono_1,
+        telefono_2=customer_info.telefono_2
+    )
+    db.add(new_info)
+    db.commit()
+    db.refresh(new_info)
+    return new_info
+
+"""Actualiza las direcciones secundarias (address_2 y address_3) de un cliente"""
+def update_customer_addresses(db: Session, customer_id: int, address_2: Optional[str], address_3: Optional[str]) -> Optional[CustomerInfo]:
+    existing_info = get_customer_info(db, customer_id)
+    if not existing_info:
+        return None
+    existing_info.address_2 = address_2
+    existing_info.address_3 = address_3
+    db.commit()
+    db.refresh(existing_info)
+    return existing_info

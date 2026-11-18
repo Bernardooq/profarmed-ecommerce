@@ -1,0 +1,237 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
+import { getProductImageUrl } from '../../utils/imageUtils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookmark } from '@fortawesome/free-solid-svg-icons';
+import { formatCurrency } from '../../utils/formatUtils';
+import ModalAddFavorite from '../modals/products/ModalAddFavorite';
+import usePermissions from '../../hooks/usePermissions';
+
+const MESSAGE_TIMEOUT = 3000;
+const SUCCESS_TIMEOUT = 2000;
+
+export default function ProductCard({ product, onProductClick, allowAddToCart = true, productUrl = null }) {
+  const { addToCart } = useCart();
+  const { isAuthenticated, user } = useAuth();
+  const { isCustomer } = usePermissions();
+  const [quantity, setQuantity] = useState(1);
+  const [adding, setAdding] = useState(false);
+  const [message, setMessage] = useState('');
+  const [lastWasWarning, setLastWasWarning] = useState(false);
+  const [showFavoriteModal, setShowFavoriteModal] = useState(false);
+
+
+  const {
+    product_id, image_url, name, category_id,
+    stock_count, is_active, final_price, base_price, description
+  } = product;
+
+  // Extract "Caja" info from description (e.g., "Costo Público: 360.19 | Caja: CAJA192")
+  const extractCaja = (desc) => {
+    if (!desc) return null;
+    const match = desc.match(/Caja:\s*([^|]+)/i);
+    return match ? match[1].trim() : null;
+  };
+
+  const cajaInfo = extractCaja(description);
+
+  const isAvailable = stock_count > 0 && is_active;
+  const displayPrice = final_price !== null && final_price !== undefined ? final_price : base_price;
+  const priceLabel = final_price !== null && final_price !== undefined ? 'Precio (IVA incluido)' : 'Precio base';
+
+  // ── Quantity helpers (mirrors ModalProductDetails logic) ──────────────
+  const handleQuantityChange = (delta) => {
+    const newQty = quantity + delta;
+    if (newQty >= 1 && newQty <= stock_count) setQuantity(newQty);
+  };
+
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    if (value === '') { setQuantity(''); return; }
+    const newQty = Number(value);
+    if (!isNaN(newQty) && newQty >= 1 && newQty <= stock_count) setQuantity(newQty);
+  };
+
+  const handleInputBlur = () => {
+    if (quantity === '' || quantity < 1) setQuantity(1);
+    else if (quantity > stock_count) setQuantity(stock_count);
+    else setQuantity(Math.floor(Number(quantity)));
+  };
+
+  // ── Add to cart ───────────────────────────────────────────────────────
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      setMessage('Inicia sesión para agregar productos');
+      setTimeout(() => setMessage(''), MESSAGE_TIMEOUT);
+      return;
+    }
+    try {
+      setAdding(true);
+      await addToCart(product_id, Number(quantity));
+      setLastWasWarning(false);
+      setMessage('¡Producto agregado!');
+      setTimeout(() => setMessage(''), SUCCESS_TIMEOUT);
+    } catch (error) {
+      setLastWasWarning(!!error.isWarning);
+      setMessage(error.message || 'Error al agregar producto');
+      setTimeout(() => setMessage(''), MESSAGE_TIMEOUT);
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <article className="product-card">
+      {allowAddToCart && isCustomer && (
+        <button
+          className="product-card__favorite"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowFavoriteModal(true);
+          }}
+          title="Guardar en una lista"
+        >
+          <FontAwesomeIcon icon={faBookmark} />
+        </button>
+      )}
+
+      {product.has_discount && (
+        <div className="product-card__discount-badge">
+          -{product.discount_applied}%
+        </div>
+      )}
+
+      <img
+        src={getProductImageUrl(product)}
+        alt={name}
+        className="product-card__image"
+      />
+
+      <div className="product-card__info">
+        <h3 className="product-card__name">
+          {productUrl ? (
+            <Link to={productUrl} style={{ color: 'inherit', textDecoration: 'none' }}>
+              {name}
+            </Link>
+          ) : (
+            name
+          )}
+        </h3>
+        <p className="product-card__category">
+          {product.category?.name ?? `Categoría ${product.category_id}`}
+        </p>
+
+        {cajaInfo && (
+          <p className="product-card__location">
+            <strong>Caja:</strong> {cajaInfo}
+          </p>
+        )}
+
+        {displayPrice !== undefined && displayPrice !== null && (
+          <div className="product-card__price-container">
+            {product.has_discount && product.original_price && (
+              <div className="product-card__discount-info">
+                <span className="product-card__original-price">
+                  {formatCurrency(product.original_price)} MXN
+                </span>
+                {product.savings > 0 && (
+                  <span className="product-card__savings">
+                    Ahorras {formatCurrency(product.savings)}
+                  </span>
+                )}
+              </div>
+            )}
+            <p className={`product-card__price ${product.has_discount ? 'product-card__price--discounted' : ''}`}>
+              {formatCurrency(displayPrice)} MXN
+            </p>
+            {final_price !== undefined && (
+              <small className="product-card__price-label">{priceLabel}</small>
+            )}
+          </div>
+        )}
+
+        <p className={`stock-badge ${isAvailable ? 'stock-badge--available' : 'stock-badge--out'}`}>
+          {isAvailable ? (
+            <>En stock: <strong>{stock_count} unidades</strong></>
+          ) : (
+            <>Agotado</>
+          )}
+        </p>
+
+        {message && (
+          <p className={`product-card__message${lastWasWarning ? ' product-card__message--warning' : ''}`}>
+            {message}
+          </p>
+        )}
+
+        {/* Quantity control – only shown when the product is available and add to cart is enabled */}
+        {allowAddToCart && isAvailable && (
+          <div className="product-card__quantity-controls">
+            <button
+              className="btn btn--secondary btn--sm product-card__qty-btn"
+              onClick={() => handleQuantityChange(-1)}
+              disabled={quantity <= 1}
+              aria-label="Disminuir cantidad"
+            >
+              −
+            </button>
+
+            <input
+              className="input input--sm product-card__qty-input"
+              type="number"
+              value={quantity}
+              onChange={handleInputChange}
+              onBlur={handleInputBlur}
+              onKeyDown={(e) => {
+                if (['-', 'e', '.', ','].includes(e.key)) e.preventDefault();
+              }}
+              min="1"
+              max={stock_count}
+              aria-label="Cantidad"
+            />
+
+            <button
+              className="btn btn--secondary btn--sm product-card__qty-btn"
+              onClick={() => handleQuantityChange(1)}
+              disabled={quantity >= stock_count}
+              aria-label="Aumentar cantidad"
+            >
+              +
+            </button>
+          </div>
+        )}
+
+        <div className="product-card__buttons">
+          <button
+            className={`btn btn--secondary btn--sm ${!allowAddToCart ? 'w-full' : ''}`}
+            style={!allowAddToCart ? { width: '100%' } : {}}
+            onClick={() => onProductClick(product)}
+          >
+            Ver Detalles
+          </button>
+
+          {allowAddToCart && (
+            <button
+              className="btn btn--primary btn--sm"
+              disabled={!isAvailable || adding}
+              onClick={handleAddToCart}
+            >
+              {adding ? 'Agregando...' : 'Agregar al Carrito'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {showFavoriteModal && (
+        <ModalAddFavorite
+          isOpen={showFavoriteModal}
+          onClose={() => setShowFavoriteModal(false)}
+          product={product}
+          quantity={quantity}
+        />
+      )}
+    </article>
+  );
+}

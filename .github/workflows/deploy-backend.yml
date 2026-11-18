@@ -1,0 +1,63 @@
+name: Deploy Backend to AWS ECR & ECS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build & Zero-Downtime Deploy Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || vars.AWS_REGION || 'us-east-1' }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build, Tag and Push Image to ECR (linux/arm64)
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY || vars.ECR_REPOSITORY || 'profarmed-api' }}
+          IMAGE_TAG: latest
+        run: |
+          docker buildx build \
+            --platform linux/arm64 \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            --cache-from=type=gha \
+            --cache-to=type=gha,mode=max \
+            --push \
+            backend/
+
+      - name: Deploy to Amazon ECS (Zero-Downtime Rolling Update)
+        env:
+          ECS_CLUSTER: ${{ secrets.ECS_CLUSTER || vars.ECS_CLUSTER || 'profarmed-cluster' }}
+          ECS_SERVICE: ${{ secrets.ECS_SERVICE || vars.ECS_SERVICE || 'profarmed-backend-service' }}
+        run: |
+          echo "Forzando nuevo despliegue en ECS Cluster '$ECS_CLUSTER', Servicio '$ECS_SERVICE'..."
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_SERVICE" \
+            --force-new-deployment
+
+          echo "Despliegue ordenado exitosamente a ECS."
+          echo "ECS descargará la nueva imagen de ECR, levantará los nuevos contenedores, registrará sus targets en el ALB y reemplazará los antiguos sin downtime."

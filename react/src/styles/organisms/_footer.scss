@@ -1,0 +1,168 @@
+@use '../tokens/breakpoints' as *;
+
+// ============================================
+// ORGANISM — FOOTER
+// ============================================
+
+.footer {
+    background: #0e101f;
+    color: rgba(255, 255, 255, 0.88);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: var(--space-10) 0 calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+
+    &__inner {
+        @include container;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--space-8);
+
+        @include tablet {
+            grid-template-columns: 1.4fr 1fr 1.2fr;
+            gap: var(--space-10);
+            align-items: start;
+        }
+    }
+
+    &__brand {
+        text-align: center;
+
+        @include tablet {
+            text-align: left;
+        }
+    }
+
+    &__logo {
+        display: inline-flex;
+        align-items: center;
+        margin-bottom: var(--space-4);
+
+        img {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+    }
+
+    &__desc {
+        font-size: var(--text-sm);
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.85);
+        margin: 0 0 var(--space-4);
+        max-width: 340px;
+
+        @include max-tablet {
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+
+    &__social-title {
+        font-size: var(--text-sm);
+        font-weight: var(--font-semibold);
+        color: #ffffff;
+        margin: 0 0 var(--space-3);
+    }
+
+    &__socials {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        justify-content: center;
+
+        @include tablet {
+            justify-content: flex-start;
+        }
+
+        a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            @include transition;
+
+            img {
+                width: 28px;
+                height: 28px;
+                object-fit: contain;
+            }
+
+            &:hover {
+                transform: translateY(-2px);
+                opacity: 0.85;
+            }
+        }
+    }
+
+    &__section {
+        text-align: center;
+
+        @include tablet {
+            text-align: left;
+        }
+
+        h4 {
+            font-size: var(--text-sm);
+            font-weight: var(--font-bold);
+            color: #ffffff;
+            margin: 0 0 var(--space-4);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        a,
+        p {
+            display: block;
+            font-size: var(--text-sm);
+            color: rgba(255, 255, 255, 0.85);
+            padding: var(--space-1) 0;
+            margin: 0;
+            text-decoration: none;
+            line-height: 1.5;
+            @include transition;
+        }
+
+        a:hover {
+            color: #7bbe7b;
+        }
+    }
+
+    &__contact-link {
+        text-decoration: underline !important;
+        margin-bottom: var(--space-1);
+    }
+
+    &__bottom {
+        @include container;
+        margin-top: var(--space-8);
+        padding-top: var(--space-4);
+        border-top: 1px solid rgba(255, 255, 255, 0.10);
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        align-items: center;
+        justify-content: space-between;
+        font-size: var(--text-xs);
+        color: rgba(255, 255, 255, 0.65);
+
+        @include max-tablet {
+            justify-content: center;
+            text-align: center;
+        }
+    }
+
+    &__legal {
+        display: flex;
+        gap: var(--space-4);
+
+        a {
+            color: rgba(255, 255, 255, 0.65);
+            text-decoration: none;
+
+            &:hover {
+                color: #7bbe7b;
+            }
+        }
+    }
+}

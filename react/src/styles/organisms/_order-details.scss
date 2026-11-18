@@ -1,0 +1,324 @@
+@use '../tokens/breakpoints' as *;
+
+// ============================================
+// ORGANISM — ORDER DETAILS
+// Specific styles for the Order Details modal content
+// ============================================
+
+.order-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+
+    &__section {
+        border-bottom: var(--border-width) solid var(--color-border);
+        padding-bottom: var(--space-6);
+        margin-bottom: var(--space-2);
+
+        &:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        h3 {
+            font-size: var(--text-base);
+            font-weight: var(--font-bold);
+            color: var(--color-primary);
+            margin-bottom: var(--space-4);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+    }
+
+    &__grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+
+        @media (min-width: 600px) {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    &__item {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+
+        &--full {
+            grid-column: 1 / -1;
+        }
+
+        strong {
+            font-size: var(--text-xs);
+            text-transform: uppercase;
+            color: var(--color-text-muted);
+            font-weight: var(--font-semibold);
+        }
+
+        span {
+            font-size: var(--text-sm);
+            color: var(--color-text);
+            font-weight: var(--font-medium);
+            word-break: break-word;
+        }
+    }
+
+    &__total {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: var(--space-4);
+        margin-top: var(--space-4);
+        padding-top: var(--space-4);
+
+        strong {
+            font-size: var(--text-lg);
+            color: var(--color-text);
+        }
+
+        &-amount {
+            font-size: var(--text-2xl);
+            font-weight: var(--font-bold);
+            color: var(--color-success);
+        }
+    }
+
+    // ─── Mobile compact mode ──────────────────
+    @include max-tablet {
+        gap: var(--space-3);
+
+        &__section {
+            padding-bottom: var(--space-3);
+            margin-bottom: var(--space-1);
+
+            h3 {
+                font-size: var(--text-sm);
+                margin-bottom: var(--space-2);
+            }
+        }
+
+        &__grid {
+            gap: var(--space-2);
+        }
+
+        &__item {
+            flex-direction: row;
+            align-items: baseline;
+            gap: var(--space-2);
+
+            strong {
+                flex-shrink: 0;
+                min-width: 0;
+            }
+
+            span {
+                text-align: right;
+                flex: 1;
+            }
+
+            &--full {
+                flex-direction: column;
+
+                span {
+                    text-align: left;
+                }
+            }
+        }
+    }
+}
+
+
+// ============================================
+// ORDER SUMMARY (for shipping cost breakdown)
+// ============================================
+
+.order-summary {
+    &__profit-box {
+        background: rgba(16, 185, 129, 0.08);
+        padding: 0.55rem 0.75rem;
+        border-radius: var(--radius-md);
+        margin-top: 0.5rem;
+        border: 1px solid rgba(16, 185, 129, 0.25);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        &--loss {
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.25);
+        }
+
+        .profit-label {
+            font-weight: var(--font-semibold);
+            color: var(--color-success);
+
+            &--loss {
+                color: var(--color-danger);
+            }
+        }
+
+        .profit-amount {
+            font-weight: var(--font-bold);
+            font-size: 1.05rem;
+            color: var(--color-success);
+
+            &--loss {
+                color: var(--color-danger);
+            }
+        }
+    }
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background-color: var(--color-bg-secondary);
+    border-radius: var(--border-radius);
+
+    &__row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: var(--text-sm);
+        color: var(--color-text);
+        padding: var(--space-2) 0;
+
+        &:not(:last-child) {
+            border-bottom: var(--border-width) solid var(--color-border);
+        }
+    }
+
+    &__total {
+        font-size: var(--text-lg);
+        font-weight: var(--font-bold);
+        padding-top: var(--space-3);
+        margin-top: var(--space-2);
+        border-top: 2px solid var(--color-border);
+    }
+
+    &__total-amount {
+        font-size: var(--text-2xl);
+        color: var(--color-success);
+        font-weight: var(--font-bold);
+    }
+}
+
+// ============================================
+// ORDER NOTES — Nota del cliente en el pedido
+// ============================================
+
+.order-notes {
+    background-color: var(--color-warning-bg);
+    border: 1px solid var(--color-warning);
+    border-radius: var(--border-radius);
+    padding: var(--space-4) var(--space-5);
+    color: var(--color-text);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    font-size: var(--text-sm);
+    word-break: break-word;
+
+    // Variante interna (notas al vendedor) — tono azul
+    &--internal {
+        background-color: var(--color-info-bg);
+        border-color: var(--color-info);
+    }
+}
+
+// ─── Table Specific Enhancements ──────────
+.order-details {
+    .table-container {
+        margin-top: var(--space-4);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        max-width: 100%;
+    }
+
+    .data-table {
+        th, td {
+            @media (min-width: 1024px) {
+                &[data-label="Subtotal"],
+                &[data-label="Precio Unit."],
+                &[data-label="Precio s/IVA"] {
+                    white-space: nowrap;
+                    text-align: right;
+                    min-width: 100px;
+                }
+
+                &[data-label="Cantidad"] {
+                    text-align: center;
+                    width: 80px;
+                }
+                
+                &[data-label="Descripción"] {
+                    min-width: 200px;
+                    max-width: 400px;
+                }
+            }
+        }
+    }
+}
+
+.product-cell {
+    &__subline {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+    }
+
+    &__codebar-badge {
+        font-family: monospace;
+        background: var(--color-surface-hover, rgba(0, 0, 0, 0.05));
+        padding: 1px 6px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--color-border-subtle, rgba(0, 0, 0, 0.1));
+    }
+}
+
+.profit-col {
+    white-space: nowrap;
+
+    &__amount {
+        font-weight: var(--font-bold);
+        color: var(--color-success);
+
+        &--loss {
+            color: var(--color-danger);
+        }
+    }
+
+    &__unit {
+        font-size: 0.72rem;
+        color: var(--color-text-muted);
+
+        &--loss {
+            color: var(--color-danger);
+        }
+    }
+}
+
+.order-details__internal-notes-tag {
+    font-size: var(--text-xs);
+    font-weight: normal;
+    opacity: 0.7;
+}
+
+.product-cell {
+    &__text-group {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    &__name {
+        font-size: 0.9rem;
+        line-height: 1.25;
+    }
+}

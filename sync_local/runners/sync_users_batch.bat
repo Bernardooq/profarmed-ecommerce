@@ -1,0 +1,44 @@
+@echo off
+set "logfile=%~dp0..\logs\sync_users_batch.log"
+
+:: Rotacion: Si el log supera 5 MB (5,242,880 bytes), renombra a .log.1 (borrando el .log.1 viejo)
+if exist "%logfile%" (
+    for %%F in ("%logfile%") do (
+        if %%~zF GTR 5242880 (
+            del /f /q "%logfile%.1" 2>nul
+            move /y "%logfile%" "%logfile%.1" >nul 2>&1
+        )
+    )
+)
+
+call :main >> "%logfile%" 2>&1
+exit /b
+
+:main
+echo [%date% %time%] Inicio
+cd /d "%~dp0.."
+echo ===================================================
+echo Sincronizacion de Usuarios DBF (Batch Multithread)
+echo ===================================================
+
+if exist "venv\Scripts\python.exe" (
+    set "PY_EXE=venv\Scripts\python.exe"
+) else if exist "src\venv\Scripts\python.exe" (
+    set "PY_EXE=src\venv\Scripts\python.exe"
+) else if exist "services\venv\Scripts\python.exe" (
+    set "PY_EXE=services\venv\Scripts\python.exe"
+) else if exist "servicios\venv\Scripts\python.exe" (
+    set "PY_EXE=servicios\venv\Scripts\python.exe"
+) else if exist "..\venv\Scripts\python.exe" (
+    set "PY_EXE=..\venv\Scripts\python.exe"
+) else (
+    set "PY_EXE=python"
+)
+
+"%PY_EXE%" -m src.uploader.sync_users_batch
+
+echo.
+echo Proceso finalizado.
+echo [%date% %time%] Fin
+echo ---------------------------------------------------
+goto :eof

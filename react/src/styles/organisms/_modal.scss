@@ -1,0 +1,521 @@
+@use '../tokens/breakpoints' as *;
+
+// ============================================
+// ORGANISM — MODAL
+// ============================================
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--space-4);
+    animation: fadeIn 0.2s ease;
+
+    @media (max-width: 640px) {
+        padding: var(--space-2);
+    }
+
+    &:has(.ticket-thread),
+    &:has(#ticket-create-form) {
+        z-index: 1050;
+    }
+}
+
+.modal {
+    background: var(--color-surface);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    width: 100%;
+    max-width: 1000px; // Default size (was full width)
+    max-height: 88vh;
+    max-height: 88dvh;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease;
+    overflow: hidden;
+
+    // Permite que cualquier <form> dentro de un modal mantenga el layout flex y el scroll vertical en modal__body
+    > form {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    @media (max-width: 640px) {
+        max-height: 80vh;
+        max-height: 80dvh;
+        max-height: calc(100svh - 48px);
+        width: 94vw;
+        max-width: 94vw;
+        margin: auto;
+    }
+
+    // Sizes
+    &--sm {
+        max-width: 600px;
+    }
+
+    &--md {
+        max-width: 800px;
+    }
+
+    &--lg {
+        max-width: 1200px;
+    }
+
+    &--xl {
+        max-width: 1400px;
+    }
+
+    &--full {
+        max-width: 95vw;
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--space-5) var(--space-6);
+        border-bottom: var(--border-width) solid var(--color-border);
+        flex-shrink: 0;
+
+        @media (max-width: 640px) {
+            padding: var(--space-3);
+        }
+
+        h2,
+        h3 {
+            font-size: var(--text-lg);
+            font-weight: var(--font-bold);
+            color: var(--color-text);
+            margin: 0;
+
+            @media (max-width: 640px) {
+                font-size: var(--text-base);
+            }
+        }
+    }
+
+    &__close {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-md);
+        background: transparent;
+        color: var(--color-text-muted);
+        font-size: var(--text-xl);
+        cursor: pointer;
+        @include transition;
+
+        @media (max-width: 640px) {
+            width: 28px;
+            height: 28px;
+            font-size: var(--text-lg);
+        }
+
+        &:hover {
+            background: var(--color-bg-muted);
+            color: var(--color-text);
+        }
+    }
+
+    &__body {
+        padding: var(--space-6);
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+
+        @media (max-width: 640px) {
+            padding: var(--space-3);
+        }
+
+        // Scrollbar
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: var(--color-border-strong);
+            border-radius: var(--radius-full);
+        }
+    }
+
+    &__footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        padding: var(--space-4) var(--space-6);
+        border-top: var(--border-width) solid var(--color-border);
+        flex-shrink: 0;
+
+        @media (max-width: 640px) {
+            padding: var(--space-3);
+            gap: var(--space-2);
+            flex-direction: column-reverse;
+            align-items: stretch;
+
+            .btn {
+                width: 100%;
+                font-size: var(--text-xs);
+                padding: 6px 12px;
+                min-height: 38px;
+                justify-content: center;
+                text-align: center;
+                white-space: normal;
+            }
+        }
+    }
+
+    // Modal form (columns inside body)
+    &__form {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+    }
+
+    // Tabs (Adiciones para ModalEditProfile)
+    &__tabs {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        padding: 0 var(--space-6);
+        border-bottom: var(--border-width) solid var(--color-border);
+        background: var(--color-bg-subtle); // Para distinguirlo un poco del header
+        gap: var(--space-4);
+    }
+    
+    &__tab {
+        padding: var(--space-4) 0;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: var(--color-text-muted);
+        font-weight: var(--font-medium);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: var(--text-sm);
+        margin-bottom: -1px; // Para solapar el borde inferior con el borde del contenedor
+    
+        &:hover {
+            color: var(--color-text);
+        }
+    
+        &.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+    }
+    // Custom list for assigning items (checkboxes)
+    &__checkbox-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+    }
+
+    &__checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-3);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        background-color: transparent;
+        transition: all 0.2s;
+
+        &--selected {
+            background-color: var(--color-bg-subtle);
+            border-color: var(--color-primary);
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+    }
+
+    &__checkbox-item-content {
+        flex: 1;
+
+        .group-name {
+            font-weight: var(--font-medium);
+            color: var(--color-text);
+        }
+
+        .group-desc {
+            font-size: var(--text-sm);
+            color: var(--color-text-muted);
+            margin-top: 2px;
+        }
+    }
+}
+// Animations
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+// ============================================
+// Modal Download TXT Options (Modular ERP Export)
+// ============================================
+.modal-download-txt {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+
+    &__info-banner {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-4);
+        background: var(--color-info-bg);
+        color: var(--color-info-text);
+        border-radius: var(--radius-md);
+        font-size: var(--text-sm);
+    }
+
+    &__options {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+    }
+
+    &__option-card {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-3);
+        padding: var(--space-4);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-lg);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: transparent;
+
+        &:hover {
+            border-color: var(--color-primary);
+            background: var(--color-primary-light);
+        }
+
+        &--selected {
+            border-color: var(--color-primary);
+            background: var(--color-primary-light);
+        }
+
+        input[type="radio"] {
+            margin-top: 3px;
+            cursor: pointer;
+        }
+    }
+
+    &__option-content {
+        flex: 1;
+    }
+
+    &__option-title {
+        font-weight: var(--font-semibold);
+        color: var(--color-text);
+        margin-bottom: 2px;
+    }
+
+    &__option-desc {
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+    }
+
+    &__chunk-box {
+        padding: var(--space-4);
+        background: var(--color-bg-subtle);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-lg);
+        margin-top: var(--space-1);
+    }
+
+    &__chunk-input {
+        width: 140px;
+        margin-top: var(--space-2);
+    }
+
+    &__preview-info {
+        margin-top: var(--space-3);
+        font-size: var(--text-xs);
+        color: var(--color-text);
+        line-height: 1.5;
+
+        code {
+            font-size: 0.85em;
+            background: var(--color-bg-muted);
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            color: var(--color-primary);
+        }
+    }
+}
+
+// ============================================
+// Support Modal (Modular Customer Service)
+// ============================================
+.support-modal {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+
+    &__tabs {
+        display: flex;
+        gap: var(--space-2);
+        border-bottom: var(--border-width) solid var(--color-border);
+        padding-bottom: var(--space-2);
+        margin-bottom: var(--space-2);
+        flex-wrap: wrap;
+    }
+
+    &__tab {
+        padding: var(--space-2) var(--space-4);
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid transparent;
+        font-weight: var(--font-semibold);
+        font-size: var(--text-sm);
+        color: var(--color-text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
+        transition: all 0.2s ease;
+
+        &:hover {
+            color: var(--color-primary);
+            background: var(--color-bg-subtle);
+        }
+
+        &--active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+            background: var(--color-primary-light);
+        }
+    }
+
+    &__intro {
+        font-size: var(--text-sm);
+        color: var(--color-text-muted);
+        margin: 0;
+    }
+
+    &__channels {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: var(--space-4);
+        margin: var(--space-2) 0;
+    }
+
+    &__channel-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: var(--space-5) var(--space-4);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-lg);
+        background: var(--color-surface);
+        transition: all 0.2s ease;
+        gap: var(--space-2);
+
+        &:hover {
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-sm);
+            transform: translateY(-2px);
+        }
+    }
+
+    &__channel-icon {
+        font-size: 2rem;
+        margin-bottom: var(--space-1);
+
+        &--whatsapp {
+            color: var(--color-success);
+        }
+
+        &--phone {
+            color: var(--color-primary);
+        }
+    }
+
+    &__channel-title {
+        font-weight: var(--font-bold);
+        color: var(--color-text);
+        margin: 0;
+    }
+
+    &__channel-desc {
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+        margin: 0;
+    }
+
+    &__info-box {
+        padding: var(--space-4);
+        background: var(--color-bg-subtle);
+        border-radius: var(--radius-lg);
+        border: var(--border-width) solid var(--color-border);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        font-size: var(--text-xs);
+    }
+
+    &__info-row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        color: var(--color-text-muted);
+
+        strong {
+            color: var(--color-text);
+        }
+
+        a {
+            color: var(--color-primary);
+            font-weight: var(--font-semibold);
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+}

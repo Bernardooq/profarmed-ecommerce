@@ -1,0 +1,1297 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  AWS CloudFormation Master Stack para B2B Ecommerce Platform (Profarmed / Profarmed / Profarmed).
+  Aprovisiona: S3 Buckets (Frontend, Imgs, Promos, Docs con nombres parametrizados), CloudFront CDNs con OAC y SSL ACM,
+  ECR Repository, SSM Parameter Store, Roles IAM de Minimo Privilegio (EC2 y CI/CD GitHub Deployer),
+  Security Groups, Launch Template (t4g.nano ARM64 con Docker), Auto Scaling Group integrado a Target Group existente,
+  y Alarmas CloudWatch con SNS Topic para auto-escalamiento por CPU.
+
+# ==============================================================================
+# PARAMETROS CONFIGURABLES
+# ==============================================================================
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "1. Identidad del Proyecto & Nombres"
+        Parameters:
+          - ProjectName
+          - AppName
+          - AppId
+      - Label:
+          default: "2. Secretos & Variables de Entorno (.env)"
+        Parameters:
+          - SsmEnvParameterName
+      - Label:
+          default: "3. Red Existente (VPC, Subnets & ALB)"
+        Parameters:
+          - VpcId
+          - PublicSubnetIds
+          - AlbSecurityGroupId
+          - AlbTargetGroupArn
+      - Label:
+          default: "4. Dominios & Certificado SSL (CloudFront)"
+        Parameters:
+          - AcmCertificateArn
+          - FrontendDomainName
+          - ImgsDomainName
+          - PromosDomainName
+      - Label:
+          default: "5. Almacenamiento S3 (Nombres de Buckets)"
+        Parameters:
+          - FrontendBucketName
+          - ImgsBucketName
+          - PromosBucketName
+          - DocsBucketName
+      - Label:
+          default: "6. Cómputo ECS / EC2 & Capacidad"
+        Parameters:
+          - KeyPairName
+          - InstanceType
+          - AmiId
+          - AsgMinSize
+          - AsgDesiredCapacity
+          - AsgMaxSize
+      - Label:
+          default: "7. Monitoreo & Notificaciones SNS"
+        Parameters:
+          - AlertEmail
+
+Parameters:
+  # ==============================================================================
+  # 1. IDENTIDAD DEL PROYECTO & NOMBRES
+  # ==============================================================================
+  ProjectName:
+    Type: String
+    Default: profarmed
+    Description: "[OBLIGATORIO] Prefijo base para nombrar recursos (ej. profarmed, profarmed, profarmed)."
+
+  AppName:
+    Type: String
+    Default: profarmed
+    Description: Nombre de la aplicacion para etiquetado (tag appname).
+
+  AppId:
+    Type: String
+    Default: "6"
+    Description: Identificador unico de la aplicacion (tag appid).
+
+  # ==============================================================================
+  # 2. SECRETOS & VARIABLES DE ENTORNO (.ENV)
+  # ==============================================================================
+  SsmEnvParameterName:
+    Type: String
+    Default: profarmed-env
+    Description: "[OBLIGATORIO] Nombre exacto del parametro SecureString que creaste manualmente en AWS SSM Parameter Store con tu .env."
+
+  # ==============================================================================
+  # 3. RED EXISTENTE (VPC, SUBNETS & ALB)
+  # ==============================================================================
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Default: vpc-070b6ee4688c64481
+    Description: "[OBLIGATORIO] ID de tu VPC existente."
+
+  PublicSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Default: subnet-0b2993eddac596b58,subnet-0989ba4d8e9ae4e6a
+    Description: "[OBLIGATORIO] IDs de las subnets publicas separadas por coma donde correran las instancias EC2."
+
+  AlbSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Default: sg-096226a27e574f4cc
+    Description: "[OBLIGATORIO] ID del Security Group de tu Load Balancer (sg-alb) para autorizar trafico HTTP hacia los contenedores."
+
+  AlbTargetGroupArn:
+    Type: String
+    Default: arn:aws:elasticloadbalancing:us-east-1:817697649850:targetgroup/tg-profarmed/3826737b46df4fa6
+    Description: "[OBLIGATORIO] ARN del Target Group del ALB existente al cual se registraran los contenedores backend."
+
+  # ==============================================================================
+  # 4. DOMINIOS & CERTIFICADO SSL (CLOUDFRONT)
+  # ==============================================================================
+  AcmCertificateArn:
+    Type: String
+    Default: arn:aws:acm:us-east-1:817697649850:certificate/23c30556-235c-42b8-ab0a-e253cc687eae
+    Description: "[OBLIGATORIO] ARN del Certificado SSL/TLS en ACM (us-east-1) para CloudFront."
+
+  FrontendDomainName:
+    Type: String
+    Default: profarmed.com.mx
+    Description: Subdominio / CNAME para el Frontend React (ej. profarmed.com.mx o profarmed.com.mx).
+
+  ImgsDomainName:
+    Type: String
+    Default: imgecommerce.profarmed.com.mx
+    Description: Subdominio / CNAME para la CDN de Imagenes del catalogo.
+
+  PromosDomainName:
+    Type: String
+    Default: promosecommerce.profarmed.com.mx
+    Description: Subdominio / CNAME para la CDN de Promociones y Banners.
+
+  # ==============================================================================
+  # 5. ALMACENAMIENTO S3 (NOMBRES DE BUCKETS)
+  # ==============================================================================
+  FrontendBucketName:
+    Type: String
+    Default: ecommerce-profarmed-frontend
+    Description: Nombre unico global del Bucket S3 para el Frontend React.
+
+  ImgsBucketName:
+    Type: String
+    Default: ecommerce-profarmed-imgs
+    Description: Nombre unico global del Bucket S3 para Catalogo de Imagenes.
+
+  PromosBucketName:
+    Type: String
+    Default: ecommerce-profarmed-promos
+    Description: Nombre unico global del Bucket S3 para Promociones y Banners.
+
+  DocsBucketName:
+    Type: String
+    Default: ecommerce-profarmed-docs
+    Description: Nombre unico global del Bucket S3 Privado para Documentos.
+
+  # ==============================================================================
+  # 6. COMPUTO ECS / EC2 & CAPACIDAD
+  # ==============================================================================
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: profarmed-ecommerce-pem
+    Description: "[OBLIGATORIO] Nombre del Key Pair SSH existente para acceso de emergencia a las instancias EC2."
+
+  InstanceType:
+    Type: String
+    Default: t4g.micro
+    Description: Tipo de instancia EC2 (ARM64 Graviton2) cubierto por Savings Plans.
+
+  AmiId:
+    Type: AWS::EC2::Image::Id
+    Default: ami-0d441557aad712334
+    Description: AMI oficial de Amazon Linux 2023 ARM64 ECS-Optimized (us-east-1).
+
+  AsgMinSize:
+    Type: Number
+    Default: 1
+    Description: Capacidad minima de instancias y contenedores (Piso garantizado).
+
+  AsgDesiredCapacity:
+    Type: Number
+    Default: 1
+    Description: Capacidad deseada en reposo.
+
+  AsgMaxSize:
+    Type: Number
+    Default: 5
+    Description: Capacidad maxima de instancias y contenedores (Techo protector de costos).
+
+  # ==============================================================================
+  # 7. MONITOREO & NOTIFICACIONES SNS
+  # ==============================================================================
+  AlertEmail:
+    Type: String
+    Default: bernardoorozcoquirarte@gmail.com
+    Description: Correo electronico para suscripcion SNS de alertas operativas.
+
+Resources:
+  # ----------------------------------------------------------------------------
+  # 1. ALMACENAMIENTO (S3 BUCKETS) & OAC PARA CLOUDFRONT
+  # ----------------------------------------------------------------------------
+
+  # CloudFront Origin Access Control (OAC)
+  CloudFrontOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${ProjectName}-s3-oac"
+        Description: !Sub "OAC para acceso seguro desde CloudFront hacia S3 de ${ProjectName}"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # Bucket 1: Frontend React (dist/)
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref FrontendBucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "${FrontendBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${FrontendDistribution}"
+
+  # Bucket 2: Catalogo de Imagenes (*.webp)
+  ImgsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref ImgsBucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  ImgsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ImgsBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "${ImgsBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${ImgsDistribution}"
+
+  # Bucket 3: Promociones y Banners
+  PromosBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref PromosBucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  PromosBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref PromosBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "${PromosBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${PromosDistribution}"
+
+  # Bucket 4: Documentos Privados (Sin CloudFront, cifrado SSE-S3)
+  DocsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref DocsBucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  # ----------------------------------------------------------------------------
+  # 2. DISTRIBUCIONES CLOUDFRONT (3 CDNs)
+  # ----------------------------------------------------------------------------
+
+  # CDN 1: Frontend SPA
+  FrontendDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub "CDN Frontend SPA para ${ProjectName}"
+        Aliases:
+          - !Ref FrontendDomainName
+        DefaultRootObject: index.html
+        Origins:
+          - Id: !Sub "${ProjectName}-frontend"
+            DomainName: !GetAtt FrontendBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt CloudFrontOriginAccessControl.Id
+            S3OriginConfig: {}
+        DefaultCacheBehavior:
+          TargetOriginId: !Sub "${ProjectName}-frontend"
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          # AWS Managed-CachingOptimized
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 0
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 0
+        ViewerCertificate:
+          AcmCertificateArn: !Ref AcmCertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  # CDN 2: Catalogo de Imagenes (Cache 1 mes con versionado por QueryString v)
+  ImgsVersionedCachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Name: !Sub "${ProjectName}-imgs-versioned-cache"
+        Comment: Cache policy moderna para imagenes con query param ?v=
+        DefaultTTL: 86400
+        MaxTTL: 2592000
+        MinTTL: 0
+        ParametersInCacheKeyAndForwardedToOrigin:
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
+          HeadersConfig:
+            HeaderBehavior: none
+          CookiesConfig:
+            CookieBehavior: none
+          QueryStringsConfig:
+            QueryStringBehavior: whitelist
+            QueryStrings:
+              - v
+
+  ImgsDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub "CDN Catalogo de Imagenes para ${ProjectName}"
+        Aliases:
+          - !Ref ImgsDomainName
+        Origins:
+          - Id: !Sub "${ProjectName}-imgs"
+            DomainName: !GetAtt ImgsBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt CloudFrontOriginAccessControl.Id
+            S3OriginConfig: {}
+        DefaultCacheBehavior:
+          TargetOriginId: !Sub "${ProjectName}-imgs"
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          CachePolicyId: !Ref ImgsVersionedCachePolicy
+        ViewerCertificate:
+          AcmCertificateArn: !Ref AcmCertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  # CDN 3: Promociones y Banners (Cache 1 mes con versionado por QueryString)
+  PromosCorsFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub "${ProjectName}-promos-cors"
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Inyecta ACAO en respuestas de promociones incluso con no-cache
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var headers = event.response.headers;
+          headers['access-control-allow-origin'] = { value: '*' };
+          headers['access-control-allow-methods'] = { value: 'GET, HEAD, OPTIONS' };
+          return event.response;
+        }
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  PromosVersionedCachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Name: !Sub "${ProjectName}-promos-versioned-cache"
+        Comment: Cache policy moderna para promociones con query param ?v=
+        DefaultTTL: 3600
+        MaxTTL: 2592000
+        MinTTL: 0
+        ParametersInCacheKeyAndForwardedToOrigin:
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
+          HeadersConfig:
+            HeaderBehavior: none
+          CookiesConfig:
+            CookieBehavior: none
+          QueryStringsConfig:
+            QueryStringBehavior: whitelist
+            QueryStrings:
+              - v
+
+  PromosDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub "CDN Promociones y Banners para ${ProjectName}"
+        Aliases:
+          - !Ref PromosDomainName
+        Origins:
+          - Id: !Sub "${ProjectName}-promos"
+            DomainName: !GetAtt PromosBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt CloudFrontOriginAccessControl.Id
+            S3OriginConfig: {}
+        DefaultCacheBehavior:
+          TargetOriginId: !Sub "${ProjectName}-promos"
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          # AWS Managed-SimpleCORS + Function viewer-response para garantizar ACAO incluso con Cache-Control: no-cache
+          ResponseHeadersPolicyId: 60669652-455b-4ae9-85a4-c4c02393f86c
+          FunctionAssociations:
+            - EventType: viewer-response
+              FunctionARN: !GetAtt PromosCorsFunction.FunctionARN
+          CachePolicyId: !Ref PromosVersionedCachePolicy
+        ViewerCertificate:
+          AcmCertificateArn: !Ref AcmCertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  # ----------------------------------------------------------------------------
+  # 3. AMAZON ECR & SSM PARAMETER STORE
+  # ----------------------------------------------------------------------------
+
+  # Repositorio ECR Backend
+  BackendEcrRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${ProjectName}-api"
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      ImageTagMutability: MUTABLE
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Eliminar imagenes untagged o huerfanas despues de 1 dia",
+                "selection": {
+                  "tagStatus": "untagged",
+                  "countType": "sinceImagePushed",
+                  "countUnit": "days",
+                  "countNumber": 1
+                },
+                "action": {
+                  "type": "expire"
+                }
+              },
+              {
+                "rulePriority": 2,
+                "description": "Conservar unicamente las ultimas 3 imagenes Docker y expirar las anteriores",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 3
+                },
+                "action": {
+                  "type": "expire"
+                }
+              }
+            ]
+          }
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+
+  # ----------------------------------------------------------------------------
+  # 4. SEGURIDAD IAM (ROLES, POLITICAS Y USUARIO CI/CD)
+  # ----------------------------------------------------------------------------
+
+  # Rol de la Instancia EC2
+  EC2InstanceProfileRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "ecommerce-${ProjectName}-ec2-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  # Politica SSM para EC2
+  EC2SsmPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "ssm-ecommerce-${ProjectName}-ec2-policy"
+      Roles:
+        - !Ref EC2InstanceProfileRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: SSMGetEnvParameter
+            Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:GetParameters
+            Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${SsmEnvParameterName}"
+          - Sid: KMSDecryptEnvParameter
+            Effect: Allow
+            Action:
+              - kms:Decrypt
+            Resource: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*"
+
+  # Politica ECR para EC2
+  EC2EcrPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "ecr-ecommerce-${ProjectName}-ec2-policy"
+      Roles:
+        - !Ref EC2InstanceProfileRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: ECRAuthToken
+            Effect: Allow
+            Action:
+              - ecr:GetAuthorizationToken
+            Resource: "*"
+          - Sid: ECRPullImage
+            Effect: Allow
+            Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+            Resource: !Sub "arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${ProjectName}-api"
+
+  # Politica S3 para EC2 (Lectura y Escritura de Docs, Imgs, Promos sin requerir AWS Keys en .env)
+  EC2S3Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "s3-ecommerce-${ProjectName}-ec2-policy"
+      Roles:
+        - !Ref EC2InstanceProfileRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: S3BucketList
+            Effect: Allow
+            Action:
+              - s3:ListBucket
+              - s3:GetBucketLocation
+            Resource:
+              - !GetAtt ImgsBucket.Arn
+              - !GetAtt PromosBucket.Arn
+              - !GetAtt DocsBucket.Arn
+          - Sid: S3ObjectCRUD
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:DeleteObject
+            Resource:
+              - !Sub "${ImgsBucket.Arn}/*"
+              - !Sub "${PromosBucket.Arn}/*"
+              - !Sub "${DocsBucket.Arn}/*"
+
+  # Instance Profile para asignar el rol a las EC2
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub "ecommerce-${ProjectName}-ec2-instance-profile"
+      Roles:
+        - !Ref EC2InstanceProfileRole
+
+
+  # Rol de Ejecucion de Tareas ECS (para descargar imagenes de ECR y escribir logs en CloudWatch)
+  EcsTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "ecs-${ProjectName}-task-execution-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: !Sub "ecs-task-ssm-decrypt-${ProjectName}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameters
+                  - ssm:GetParameter
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${SsmEnvParameterName}"
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                Resource: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*"
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  # Rol de la Tarea ECS (permite a FastAPI interactuar con S3, etc.)
+  EcsTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "ecs-${ProjectName}-task-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: !Sub "ecs-task-s3-${ProjectName}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub "arn:aws:s3:::${ImgsBucketName}"
+                  - !Sub "arn:aws:s3:::${ImgsBucketName}/*"
+                  - !Sub "arn:aws:s3:::${PromosBucketName}"
+                  - !Sub "arn:aws:s3:::${PromosBucketName}/*"
+                  - !Sub "arn:aws:s3:::${DocsBucketName}"
+                  - !Sub "arn:aws:s3:::${DocsBucketName}/*"
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  # Usuario IAM para GitHub Actions Deployer (CI/CD)
+  GitHubDeployerUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub "github-actions-${ProjectName}-deployer"
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  # Politica de Minimo Privilegio para GitHub Actions Pipeline
+  GitHubDeployerPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "pipeline-${ProjectName}-deployer-policy"
+      Users:
+        - !Ref GitHubDeployerUser
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: ECRAuth
+            Effect: Allow
+            Action:
+              - ecr:GetAuthorizationToken
+            Resource: "*"
+          - Sid: ECRPush
+            Effect: Allow
+            Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+              - ecr:InitiateLayerUpload
+              - ecr:UploadLayerPart
+              - ecr:CompleteLayerUpload
+              - ecr:PutImage
+            Resource: !Sub "arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${ProjectName}-api"
+          - Sid: ASGRefresh
+            Effect: Allow
+            Action:
+              - autoscaling:StartInstanceRefresh
+              - autoscaling:CancelInstanceRefresh
+              - autoscaling:DescribeInstanceRefreshes
+            Resource: !Sub "arn:aws:autoscaling:${AWS::Region}:${AWS::AccountId}:autoScalingGroup:*:autoScalingGroupName/${ProjectName}-asg"
+          - Sid: ECSServiceDeploy
+            Effect: Allow
+            Action:
+              - ecs:UpdateService
+              - ecs:DescribeServices
+            Resource: !Sub "arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:service/${ProjectName}-cluster/${ProjectName}-backend-service"
+          - Sid: S3FrontendSync
+            Effect: Allow
+            Action:
+              - s3:ListBucket
+              - s3:GetBucketLocation
+            Resource: !GetAtt FrontendBucket.Arn
+          - Sid: S3FrontendCRUD
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:DeleteObject
+            Resource: !Sub "${FrontendBucket.Arn}/*"
+          - Sid: CFInvalidation
+            Effect: Allow
+            Action:
+              - cloudfront:CreateInvalidation
+            Resource: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${FrontendDistribution}"
+
+  # ----------------------------------------------------------------------------
+  # 5. SECURITY GROUP PARA BACKEND EC2
+  # ----------------------------------------------------------------------------
+  BackendSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub "${ProjectName}-sg-backend"
+      GroupDescription: !Sub "Permite trafico HTTP solo desde el ALB sg (${AlbSecurityGroupId}) y SSH administrativo"
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - Description: Trafico HTTP puerto 80 desde el Load Balancer
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref AlbSecurityGroupId
+        - Description: Trafico HTTP dinamico efimero ECS/Docker desde el Load Balancer
+          IpProtocol: tcp
+          FromPort: 32768
+          ToPort: 65535
+          SourceSecurityGroupId: !Ref AlbSecurityGroupId
+      SecurityGroupEgress:
+        - Description: Trafico saliente completo hacia internet (SSM, ECR, APT/DNF, DB)
+          IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+
+  # ----------------------------------------------------------------------------
+  # 5.1 SECURITY GROUP PARA BASE DE DATOS RDS (POSTGRESQL / MYSQL)
+  # ----------------------------------------------------------------------------
+  RdsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub "${ProjectName}-sg-rds"
+      GroupDescription: !Sub "Permite trafico a la base de datos RDS exclusivamente desde las instancias backend (${ProjectName}-sg-backend)"
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - Description: Trafico PostgreSQL (puerto 5432) solo desde Backend EC2
+          IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref BackendSecurityGroup
+        - Description: Trafico MySQL (puerto 3306) solo desde Backend EC2 (opcional)
+          IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref BackendSecurityGroup
+      SecurityGroupEgress:
+        - Description: Trafico saliente
+          IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  # ----------------------------------------------------------------------------
+  # 6. LAUNCH TEMPLATE & AUTO SCALING GROUP (ARM64 t4g.nano con Docker)
+  # ----------------------------------------------------------------------------
+  BackendLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub "${ProjectName}-launch-template"
+      LaunchTemplateData:
+        ImageId: !Ref AmiId
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyPairName
+        IamInstanceProfile:
+          Arn: !GetAtt EC2InstanceProfile.Arn
+        NetworkInterfaces:
+          - DeviceIndex: 0
+            AssociatePublicIpAddress: true
+            Groups:
+              - !Ref BackendSecurityGroup
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              VolumeSize: 30
+              VolumeType: gp3
+              DeleteOnTermination: true
+              Encrypted: true
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            set -e
+
+            # 1. Habilitar memoria SWAP (2 GB) en disco EBS gp3 para expandir RAM virtual y prevenir OOM
+            if [ ! -f /swapfile ]; then
+              dd if=/dev/zero of=/swapfile bs=128M count=16 status=none
+              chmod 600 /swapfile
+              mkswap /swapfile
+              swapon /swapfile
+              echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
+              sysctl -w vm.swappiness=20
+              echo "vm.swappiness=20" >> /etc/sysctl.d/99-swap.conf
+            fi
+
+            # 2. Asegurar que el agente SSM este habilitado y activo
+            systemctl enable --now amazon-ssm-agent || true
+
+            # 3. Configurar cluster ECS nativo en AMI ECS-Optimized
+            echo "ECS_CLUSTER=${ProjectName}-cluster" >> /etc/ecs/ecs.config
+            echo "ECS_ENABLE_CONTAINER_METADATA=true" >> /etc/ecs/ecs.config
+            echo "ECS_AVAILABLE_LOGGING_DRIVERS=[\"json-file\",\"awslogs\"]" >> /etc/ecs/ecs.config
+
+            # 4. Descargar .env seguro desde SSM para que ECS monte las variables de entorno
+            mkdir -p /etc/app-config
+            aws ssm get-parameter \
+                --name "${SsmEnvParameterName}" \
+                --with-decryption \
+                --region ${AWS::Region} \
+                --query "Parameter.Value" \
+                --output text > /etc/app-config/.env
+            chmod 600 /etc/app-config/.env
+
+            # 5. ecs.service arranca automaticamente tras cloud-final
+            echo "Instancia con SWAP configurado y unida exitosamente al cluster ECS ${ProjectName}-cluster."
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: appname
+                Value: !Ref AppName
+              - Key: appid
+                Value: !Ref AppId
+
+  BackendAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: !Sub "${ProjectName}-asg"
+      VPCZoneIdentifier: !Ref PublicSubnetIds
+      LaunchTemplate:
+        LaunchTemplateId: !Ref BackendLaunchTemplate
+        Version: !GetAtt BackendLaunchTemplate.LatestVersionNumber
+      MinSize: !Ref AsgMinSize
+      MaxSize: !Ref AsgMaxSize
+      DesiredCapacity: !Ref AsgDesiredCapacity
+      HealthCheckType: EC2
+      HealthCheckGracePeriod: 300
+      NotificationConfigurations:
+        - TopicARN: !Ref AlertsSnsTopic
+          NotificationTypes:
+            - autoscaling:EC2_INSTANCE_LAUNCH
+            - autoscaling:EC2_INSTANCE_TERMINATE
+            - autoscaling:EC2_INSTANCE_LAUNCH_ERROR
+            - autoscaling:EC2_INSTANCE_TERMINATE_ERROR
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+          PropagateAtLaunch: true
+        - Key: appid
+          Value: !Ref AppId
+          PropagateAtLaunch: true
+
+
+  # ----------------------------------------------------------------------------
+  # 7. AMAZON ECS (CLUSTER, LOG GROUP, TASK DEFINITION & SERVICE CON ALB)
+  # ----------------------------------------------------------------------------
+
+  # CloudWatch Log Group para Contenedores ECS Backend
+  EcsBackendLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/ecs/${ProjectName}-backend"
+      RetentionInDays: 7
+
+  # ECS Cluster
+  BackendEcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub "${ProjectName}-cluster"
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  # Capacity Provider con Managed Scaling para autoescalar EC2 y contenedores
+  BackendEcsCapacityProvider:
+    Type: AWS::ECS::CapacityProvider
+    Properties:
+      Name: !Sub "${ProjectName}-capacity-provider"
+      AutoScalingGroupProvider:
+        AutoScalingGroupArn: !Ref BackendAutoScalingGroup
+        ManagedScaling:
+          Status: ENABLED
+          TargetCapacity: 100
+          MinimumScalingStepSize: 1
+          MaximumScalingStepSize: 2
+        ManagedTerminationProtection: DISABLED
+
+  # Vinculacion del Capacity Provider al ECS Cluster
+  ClusterCapacityProviderAssociation:
+    Type: AWS::ECS::ClusterCapacityProviderAssociations
+    Properties:
+      Cluster: !Ref BackendEcsCluster
+      CapacityProviders:
+        - !Ref BackendEcsCapacityProvider
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: !Ref BackendEcsCapacityProvider
+          Weight: 1
+          Base: 1
+
+  # ECS Task Definition (Host network / Bridge mapeando puerto 80)
+  BackendTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "${ProjectName}-backend-task"
+      NetworkMode: bridge
+      RequiresCompatibilities:
+        - EC2
+      ExecutionRoleArn: !GetAtt EcsTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt EcsTaskRole.Arn
+      Volumes:
+        - Name: env-config
+          Host:
+            SourcePath: /etc/app-config
+      ContainerDefinitions:
+        - Name: backend-container
+          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ProjectName}-api:latest"
+          Essential: true
+          MemoryReservation: 768
+          PortMappings:
+            - ContainerPort: 80
+              HostPort: 0
+              Protocol: tcp
+          MountPoints:
+            - SourceVolume: env-config
+              ContainerPath: /app-config
+              ReadOnly: true
+          EntryPoint:
+            - "/bin/sh"
+            - "-c"
+            - "if [ -f /app-config/.env ]; then set -a; . /app-config/.env; set +a; fi; exec ./entrypoint.sh"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref EcsBackendLogGroup
+              awslogs-region: !Ref "AWS::Region"
+              awslogs-stream-prefix: backend
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  # ECS Service con Rolling Updates Zero Downtime y conexion directa al Target Group del ALB
+  BackendEcsService:
+    Type: AWS::ECS::Service
+    DependsOn:
+      - BackendAutoScalingGroup
+      - ClusterCapacityProviderAssociation
+    Properties:
+      ServiceName: !Sub "${ProjectName}-backend-service"
+      Cluster: !Ref BackendEcsCluster
+      TaskDefinition: !Ref BackendTaskDefinition
+      DesiredCount: 1
+      HealthCheckGracePeriodSeconds: 120
+      CapacityProviderStrategy:
+        - CapacityProvider: !Ref BackendEcsCapacityProvider
+          Weight: 1
+          Base: 1
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      LoadBalancers:
+        - ContainerName: backend-container
+          ContainerPort: 80
+          TargetGroupArn: !Ref AlbTargetGroupArn
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  # Target Tracking Auto Scaling Policy para ECS Service (CPU al 60%)
+  EcsScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: !Ref AsgMaxSize
+      MinCapacity: !Ref AsgMinSize
+      ResourceId: !Sub "service/${BackendEcsCluster}/${BackendEcsService.Name}"
+      RoleARN: !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService"
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+
+  EcsTargetTrackingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: !Sub "${ProjectName}-ecs-cpu-target-tracking"
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref EcsScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 60.0
+        ScaleInCooldown: 300
+        ScaleOutCooldown: 60
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+
+  # ----------------------------------------------------------------------------
+  # 8. SNS TOPIC PARA NOTIFICACIONES
+  # ----------------------------------------------------------------------------
+  AlertsSnsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "ecommerce-${ProjectName}-alerts"
+      DisplayName: !Sub "Alertas de Infraestructura Ecommerce (${ProjectName})"
+      Subscription:
+        - Endpoint: !Ref AlertEmail
+          Protocol: email
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+  # Alarma CloudWatch para CPU Critico en ECS Service (> 85% por 10 min)
+  BackendCriticalCpuAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ProjectName}-backend-critical-cpu"
+      AlarmDescription: "Alerta de saturacion: CPU promedio de ECS supera 85% durante 10 minutos (2 evaluaciones de 5 min)"
+      Namespace: AWS/ECS
+      MetricName: CPUUtilization
+      Dimensions:
+        - Name: ClusterName
+          Value: !Ref BackendEcsCluster
+        - Name: ServiceName
+          Value: !GetAtt BackendEcsService.Name
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 85.0
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref AlertsSnsTopic
+      OKActions:
+        - !Ref AlertsSnsTopic
+
+  # Alarma CloudWatch para Memoria Critica en ECS Service (> 85% por 10 min)
+  BackendCriticalMemoryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ProjectName}-backend-critical-memory"
+      AlarmDescription: "Alerta de saturacion: Memoria promedio de ECS supera 85% durante 10 minutos (2 evaluaciones de 5 min)"
+      Namespace: AWS/ECS
+      MetricName: MemoryUtilization
+      Dimensions:
+        - Name: ClusterName
+          Value: !Ref BackendEcsCluster
+        - Name: ServiceName
+          Value: !GetAtt BackendEcsService.Name
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 85.0
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref AlertsSnsTopic
+      OKActions:
+        - !Ref AlertsSnsTopic
+
+Outputs:
+  ProjectPrefix:
+    Description: Prefijo estandarizado del proyecto
+    Value: !Ref ProjectName
+    Export:
+      Name: !Sub "${ProjectName}-Prefix"
+
+  FrontendBucketName:
+    Description: Nombre del bucket S3 para el Frontend React
+    Value: !Ref FrontendBucket
+    Export:
+      Name: !Sub "${ProjectName}-FrontendBucketName"
+
+  FrontendCloudFrontDistributionId:
+    Description: ID de la distribucion CloudFront de Frontend (para invalidaciones de CI/CD)
+    Value: !Ref FrontendDistribution
+    Export:
+      Name: !Sub "${ProjectName}-FrontendCloudFrontDistributionId"
+
+  FrontendCloudFrontDomainName:
+    Description: Dominio generado por CloudFront para el Frontend
+    Value: !GetAtt FrontendDistribution.DomainName
+
+  ImgsBucketName:
+    Description: Nombre del bucket S3 para Catalogo de Imagenes
+    Value: !Ref ImgsBucket
+    Export:
+      Name: !Sub "${ProjectName}-ImgsBucketName"
+
+  ImgsCloudFrontDomainName:
+    Description: Dominio CloudFront de Imagenes
+    Value: !GetAtt ImgsDistribution.DomainName
+
+  PromosBucketName:
+    Description: Nombre del bucket S3 para Promociones
+    Value: !Ref PromosBucket
+    Export:
+      Name: !Sub "${ProjectName}-PromosBucketName"
+
+  PromosCloudFrontDomainName:
+    Description: Dominio CloudFront de Promociones
+    Value: !GetAtt PromosDistribution.DomainName
+
+  DocsBucketName:
+    Description: Nombre del bucket privado S3 para Documentos
+    Value: !Ref DocsBucket
+    Export:
+      Name: !Sub "${ProjectName}-DocsBucketName"
+
+  EcrRepositoryUri:
+    Description: URI del repositorio ECR para subir imagenes Docker
+    Value: !GetAtt BackendEcrRepository.RepositoryUri
+    Export:
+      Name: !Sub "${ProjectName}-EcrRepositoryUri"
+
+  SsmParameterName:
+    Description: Nombre del parametro SecureString en SSM Parameter Store
+    Value: !Ref SsmEnvParameterName
+    Export:
+      Name: !Sub "${ProjectName}-SsmParameterName"
+
+  RdsSecurityGroupId:
+    Description: ID del Security Group creado para asociar a la base de datos RDS
+    Value: !Ref RdsSecurityGroup
+    Export:
+      Name: !Sub "${ProjectName}-RdsSecurityGroupId"
+
+  EcsClusterName:
+    Description: Nombre del ECS Cluster
+    Value: !Ref BackendEcsCluster
+    Export:
+      Name: !Sub "${ProjectName}-EcsClusterName"
+
+  EcsServiceName:
+    Description: Nombre del ECS Service
+    Value: !GetAtt BackendEcsService.Name
+    Export:
+      Name: !Sub "${ProjectName}-EcsServiceName"
+
+  AutoScalingGroupName:
+    Description: Nombre del Auto Scaling Group subyacente
+    Value: !Ref BackendAutoScalingGroup
+    Export:
+      Name: !Sub "${ProjectName}-AutoScalingGroupName"
+
+  GitHubDeployerUserName:
+    Description: Nombre del usuario IAM para CI/CD GitHub Actions
+    Value: !Ref GitHubDeployerUser
+    Export:
+      Name: !Sub "${ProjectName}-GitHubDeployerUser"
+
+  SnsTopicArn:
+    Description: ARN del Topic de SNS para alertas de monitoreo
+    Value: !Ref AlertsSnsTopic
+    Export:
+      Name: !Sub "${ProjectName}-SnsTopicArn"
+
+  CriticalCpuAlarmArn:
+    Description: ARN de la Alarma CloudWatch para CPU Critico del Backend
+    Value: !GetAtt BackendCriticalCpuAlarm.Arn
+    Export:
+      Name: !Sub "${ProjectName}-CriticalCpuAlarmArn"
+
+  CriticalMemoryAlarmArn:
+    Description: ARN de la Alarma CloudWatch para Memoria Critica del Backend
+    Value: !GetAtt BackendCriticalMemoryAlarm.Arn
+    Export:
+      Name: !Sub "${ProjectName}-CriticalMemoryAlarmArn"
+

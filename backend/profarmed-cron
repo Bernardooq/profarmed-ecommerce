@@ -1,0 +1,10 @@
+# Auto-entrega de pedidos aprobados/enviados con más de 25 días de antigüedad a las 12:00 AM
+0 0 * * * root /usr/local/bin/python /app/profarmed_api/auto_deliver_old_orders.py --days 25 >> /var/log/cron_auto_deliver.log 2>&1
+
+# Ejecutar el cálculo de similitud de productos todas las noches a las 2:00 AM
+0 2 * * * root /usr/local/bin/python /app/profarmed_api/utils/product_similarity.py >> /var/log/cron_product_similarity.log 2>&1
+
+# Rotación semanal de catálogo todos los domingos a las 3:00 AM (si catalog.weekly_rotation está activo)
+0 3 * * 0 root /usr/local/bin/python /app/profarmed_api/shuffle_catalog.py >> /var/log/cron_shuffle_catalog.log 2>&1
+# Requerido por cron: dejar una línea vacía al final del archivo
+

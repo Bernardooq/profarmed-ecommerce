@@ -1,0 +1,1 @@
+"""Images - Compresión adaptativa a WebP y análisis de tamaños."""

@@ -1,0 +1,397 @@
+{
+  "brand": {
+    "name": "Profarmed",
+    "legalName": "Profarmed B2B S.A. de C.V.",
+    "shortDescription": "Distribuidora farmacéutica especializada en farmacias independientes en la Zona Metropolitana de Guadalajara.",
+    "slogan": "Tu socio tecnológico en distribución farmacéutica y gestión B2B",
+    "domain": "https://profarmed.com.mx",
+    "contactEmail": "administracion@profarmed.com.mx",
+    "supportEmail": "soporte@profarmed.com.mx",
+    "phone": "+52 33 3854 5849",
+    "whatsapp": "523338545849",
+    "address": "Eutimio Pinzón #420, col. Rancho Nuevo 1era sección CP 44240 Guadalajara, Jalisco.",
+    "slug": "profarmed",
+    "themeColor": "#4eb070",
+    "logoText": "Profarmed",
+    "logoUrl": "/images/logo.png",
+    "turnstileSiteKey": "0x4AAAAAACozwagS-q-IOY-7",
+    "apiBaseUrl": "https://apiecommerce.profarmed.com.mx",
+    "social": {
+      "instagram": "https://instagram.com",
+      "facebook": "https://facebook.com"
+    }
+  },
+  "footer": {
+    "description": "Distribuidora farmacéutica especializada en farmacias independientes en la Zona Metropolitana de Guadalajara.",
+    "socialTitle": "Síguenos en nuestras redes sociales",
+    "navTitle": "NAVEGACIÓN",
+    "contactTitle": "CONTACTO",
+    "links": [
+      { "label": "Inicio", "to": "/" },
+      { "label": "Quienes somos", "to": "/about" },
+      { "label": "Quiero ser cliente", "to": "/quiero-ser-cliente" },
+      { "label": "Acceso como cliente", "to": "/login" },
+      { "label": "Contáctanos", "to": "/contact" }
+    ]
+  },
+  "inicio": {
+    "hero": {
+      "title": "Profarmed",
+      "srOnly": " - Distribuidora Farmacéutica B2B",
+      "subtitle": "Tu socio en distribución farmacéutica en la Zona Metropolitana de Guadalajara"
+    },
+    "intro": "Somos una distribuidora farmacéutica B2B con sede en Guadalajara que atiende a farmacias independientes de la Zona Metropolitana.",
+    "productsBanner": {
+      "title": "+2,000 productos a tu disposición",
+      "subtitle": "Medicamento genérico, suplementos alimenticios, medicamento herbolario, material de curación, medicamentos otc y más...",
+      "ctaText": "Solicitar cotización",
+      "ctaIcon": "/images/brand/icon-whatsapp.webp"
+    },
+    "allies": {
+      "title": "Tus aliados en distribución",
+      "description": "Somos una distribuidora farmacéutica B2B con sede en Guadalajara que atiende a farmacias independientes de la Zona Metropolitana.",
+      "highlightPrefix": "Buscamos ",
+      "highlightText": "ayudarte a competir contra las grandes cadenas.",
+      "ctaText": "¡Conócenos!",
+      "ctaLink": "/about",
+      "imageUrl": ""
+    },
+    "solutions": {
+      "title": "Soluciones para cada necesidad de suministro",
+      "items": [
+        {
+          "icon": "/images/brand/icon-recibe-hoy.webp",
+          "title": "Recibe el mismo día",
+          "paragraphs": [
+            "Si hace su pedido antes de la 1:00 pm su pedido le llega el mismo día a su farmacia."
+          ]
+        },
+        {
+          "icon": "/images/brand/icon-trato-integro.webp",
+          "title": "Trato con gente íntegra",
+          "paragraphs": [
+            "Como personas y como empresa, lo que decimos lo cumplimos.",
+            "Nuestro equipo también te brindará soporte incluso post- entrega."
+          ]
+        },
+        {
+          "icon": "/images/brand/icon-calidad.webp",
+          "title": "Calidad de producto",
+          "paragraphs": [
+            "Contamos con las mejores prácticas de almacén así como todas las regulaciones de COFEPRIS."
+          ]
+        }
+      ]
+    },
+    "trustBar": {
+      "icon": "/images/brand/icon-pildora.webp",
+      "items": [
+        "Sin desabasto: disponibilidad real del producto",
+        "Condiciones que te permiten competir con grandes cadenas",
+        "Productos seguros: 100% originales de laboratorio."
+      ]
+    },
+    "featured": {
+      "title": "Acerca de nuestras soluciones",
+      "items": [
+        {
+          "name": "Suministros y Productos B2B",
+          "category": "Catálogo respaldado por distribuidores autorizados con altos estándares de calidad."
+        },
+        {
+          "name": "Plataforma Ágil e Intuitiva",
+          "category": "Gestión de pedidos en tiempo real con integración de listas de precio personalizadas."
+        },
+        {
+          "name": "Operación y Eficiencia",
+          "category": "Herramientas diseñadas para agilizar la cadena de suministro y reposición de inventario."
+        },
+        {
+          "name": "Innovación y Confiabilidad",
+          "category": "Trazabilidad completa de órdenes, reportes y atención técnica especializada."
+        }
+      ]
+    },
+    "advantages": {
+      "title": "¿Por Qué Elegirnos?",
+      "items": [
+        {
+          "title": "Entregas Rápidas",
+          "text": "Logística optimizada para recibir tus pedidos comerciales en tiempo récord."
+        },
+        {
+          "title": "Amplio Catálogo",
+          "text": "Extenso surtido de marcas y líneas de productos para abastecer tu negocio."
+        },
+        {
+          "title": "Soporte Dedicado",
+          "text": "Atención rápida y eficaz para resolver cualquier consulta comercial o técnica."
+        }
+      ]
+    },
+    "labs": {
+      "title": "+150 socios comerciales",
+      "subtitle": "Alianza directa con laboratorios nacionales e internacionales para tu mejor surtido"
+    },
+    "reviews": {
+      "titleHighlight": "+500",
+      "titleRest": " clientes satisfechos",
+      "subtitlePrefix": "Mantenemos nuestra promesa de mejora continua con ",
+      "subtitleHighlight": "compromiso, respeto, responsabilidad e integridad.",
+      "ctaText": "Ver reseñas completas",
+      "ctaLink": "/about",
+      "items": [
+        {
+          "name": "Karla Montes",
+          "rating": 5,
+          "avatarUrl": ""
+        },
+        {
+          "name": "Lulu Díaz",
+          "rating": 5,
+          "avatarUrl": ""
+        },
+        {
+          "name": "Héctor Bracamontes",
+          "rating": 5,
+          "avatarUrl": ""
+        }
+      ]
+    },
+    "ctaBanner": {
+      "title": "¿Necesita un proveedor farmacéutico confiable?",
+      "subtitle": "Cuéntenos que necesita y confirmaremos disponibilidad en menos de 24 hrs con total transparencia y compromiso.",
+      "whatsappCtaText": "Solicitar cotización",
+      "whatsappIcon": "/images/brand/icon-whatsapp.webp",
+      "clientCtaText": "Quiero ser cliente",
+      "clientCtaLink": "/quiero-ser-cliente",
+      "watermarkUrl": "/images/brand/pildora-watermark.webp"
+    }
+  },
+  "nosotros": {
+    "hero": {
+      "title": "Quienes somos",
+      "subtitle": "Tu distribuidor y aliado farmacéutico"
+    },
+    "introBanner": {
+      "title": "Proveedora farmacéutica médica",
+      "subtitle": "Somos una empresa especializada en la distribución de productos farmacéuticos, ofreciendo seguridad, confianza y experiencia en todo el país."
+    },
+    "missionVision": {
+      "imageUrl": "",
+      "mission": {
+        "buttonLabel": "Misión",
+        "title": "Nuestra misión",
+        "prefix": "Surtir a las farmacias independientes con medicamento ",
+        "boldText": "original de laboratorio",
+        "middle": ", a ",
+        "highlightText": "precio competitivo y con entrega el mismo día",
+        "suffix": ", para que nunca nieguen un medicamento a sus pacientes ni pierdan una venta."
+      },
+      "vision": {
+        "buttonLabel": "Visión",
+        "title": "Nuestra visión",
+        "text": "Consolidarnos en 2027 como un proveedor líder en Jalisco y, en los próximos cinco años, posicionarnos como uno de los principales proveedores de medicamento a nivel nacional."
+      }
+    },
+    "valuesSection": {
+      "title": "Nuestros valores",
+      "items": [
+        {
+          "title": "Compromiso",
+          "text": "Ni usted ni sus clientes se quedan sin su medicamento.",
+          "imageUrl": ""
+        },
+        {
+          "title": "Responsabilidad",
+          "text": "Puede confiar en quien le surte. Respondemos por cada pedido.",
+          "imageUrl": ""
+        },
+        {
+          "title": "Respeto",
+          "text": "Trato profesional y amable, con promesa de mejora continua.",
+          "imageUrl": ""
+        }
+      ]
+    },
+    "whyChooseUs": {
+      "titlePrefix": "¿Por qué ",
+      "titleHighlight": "escogernos?",
+      "subtitle": "No solo entendemos tus particularidades y ofrecemos soluciones rápidas...",
+      "items": [
+        {
+          "title": "Recibe hoy mismo",
+          "text": "Antes de la 1:30, tu pedido llega el mismo día. ¡No más desabasto!",
+          "icon": ""
+        },
+        {
+          "title": "Cobertura nacional",
+          "text": "Entregas express en ZMG y envíos nacionales en México.",
+          "icon": ""
+        },
+        {
+          "title": "Precios competitivos",
+          "text": "Manejamos excelentes precios y constantes descuentos. ¡Compite contra grandes cadenas!",
+          "icon": ""
+        }
+      ]
+    },
+    "ctaBanner": {
+      "title": "¿Quiere ser un aliado farmacéutico?",
+      "subtitle": "Gracias por llegar hasta aquí. Usted está a unos cuantos pasos de serlo.",
+      "buttonText": "Completar mis datos",
+      "buttonLink": "/quiero-ser-cliente",
+      "watermarkUrl": "/images/brand/pildora-watermark.webp"
+    },
+    "history": {
+      "title": "Nuestra Plataforma",
+      "paragraphs": [
+        "Profarmed nace como una solución integral de comercio electrónico B2B para conectar de manera eficiente a proveedores y compradores corporativos en un entorno digital centralizado y seguro.",
+        "Desarrollada con arquitectura moderna y escalable, permite la administración completa de inventarios, pedidos masivos y esquemas de precios personalizados para cada tipo de cliente."
+      ]
+    },
+    "values": [
+      {
+        "icon": "🎯",
+        "title": "Misión",
+        "text": "Surtir a las farmacias independientes con medicamento original de laboratorio, a precio competitivo y con entrega el mismo día."
+      },
+      {
+        "icon": "👁️",
+        "title": "Visión",
+        "text": "Consolidarnos en 2027 como un proveedor líder en Jalisco y, en los próximos cinco años, posicionarnos como uno de los principales proveedores de medicamento a nivel nacional."
+      },
+      {
+        "icon": "⭐",
+        "title": "Valores",
+        "text": "Compromiso, responsabilidad, respeto y excelencia operativa para nuestros clientes."
+      }
+    ],
+    "stats": {
+      "title": "Métricas de la Plataforma",
+      "items": [
+        {
+          "value": "99.9%",
+          "label": "Disponibilidad del Sistema"
+        },
+        {
+          "value": "5,000+",
+          "label": "Productos Demo Registrados"
+        },
+        {
+          "value": "100%",
+          "label": "Operación Digital B2B"
+        },
+        {
+          "value": "24/7",
+          "label": "Acceso a la Plataforma"
+        }
+      ]
+    },
+    "advantages": {
+      "title": "¿Por Qué Elegirnos?",
+      "items": [
+        {
+          "icon": "✓",
+          "title": "Calidad Garantizada",
+          "text": "Catálogo seleccionado bajo estrictos controles de calidad y estándares comerciales."
+        },
+        {
+          "icon": "✓",
+          "title": "Entregas Programadas",
+          "text": "Red de distribución eficiente que asegura tiempos de entrega óptimos."
+        },
+        {
+          "icon": "✓",
+          "title": "Soporte Especializado",
+          "text": "Acompañamiento comercial dedicado para potenciar tus compras."
+        }
+      ]
+    },
+    "cta": {
+      "title": "¿Listo para Trabajar con Nosotros?",
+      "text": "Explora todas las capacidades de la plataforma Profarmed para impulsar el abastecimiento de tu empresa.",
+      "button": "Contáctanos"
+    }
+  },
+  "contacto": {
+    "title": "¿Donde nos encontramos?",
+    "subtitle": "Estamos a tu disposición. Déjanos un mensaje y con gusto atenderemos tus inquietudes.",
+    "info": {
+      "address": {
+        "title": "Dirección",
+        "icon": "/images/brand/contact-04.webp",
+        "lines": [
+          "Eutimio Pinzón #420, col. Rancho Nuevo 1era sección CP 44240, Guadalajara, Jalisco."
+        ]
+      },
+      "email": {
+        "title": "Correo electrónico",
+        "icon": "/images/brand/contact-05.webp",
+        "value": "administracion@profarmed.com.mx"
+      },
+      "phones": {
+        "title": "Línea de atención",
+        "icon": "/images/brand/contact-06.webp",
+        "lines": [
+          "+52 33 3854 5849"
+        ],
+        "hours": ""
+      },
+      "schedule": {
+        "title": "Horario de atención",
+        "icon": "/images/brand/contact-03.webp",
+        "lines": [
+          "Lunes a viernes de 9:00 am a 6:00 pm"
+        ]
+      },
+      "maps": {
+        "title": "Mapa de la bodega",
+        "url": "https://www.google.com/maps?q=Eutimio+Pinz%C3%B3n+420+Rancho+Nuevo+Guadalajara+Jalisco&output=embed"
+      }
+    },
+    "form": {
+      "title": "¡Déjenos un mensaje!",
+      "labels": {
+        "name": "Nombre completo*",
+        "email": "E - mail*",
+        "phone": "Teléfono",
+        "subject": "Asunto",
+        "message": "Mensaje*"
+      },
+      "button": "Enviar mensaje",
+      "buttonSending": "Enviando..."
+    }
+  },
+  "quieroSerCliente": {
+    "title": "¿Cómo ser cliente?",
+    "subtitle": "Somos una empresa especializada en la distribución de productos farmacéuticos, ofreciendo seguridad, confianza y experiencia en todo el país.",
+    "form": {
+      "title": "Formulario de Registro B2B",
+      "sections": {
+        "general": "Datos Generales",
+        "documents": "Documentación Requerida (Solo archivos PDF)"
+      },
+      "labels": {
+        "companyName": "Nombre Completo de la Empresa o Comercio *",
+        "email": "Email de Contacto *",
+        "phone": "Teléfono / WhatsApp *",
+        "subject": "Asunto",
+        "message": "Mensaje Adicional o Comentarios",
+        "placeholderMessage": "Escribe aquí cualquier comentario adicional o requerimiento especial.",
+        "idPdf": "Identificación Oficial (INE / Pasaporte) *",
+        "sanitaryLicense": "Comprobante de Operación / Licencia Sanitaria *",
+        "proofAddress": "Comprobante de Domicilio Comercial *",
+        "taxCert": "Constancia de Situación Fiscal (RFC) *"
+      },
+      "button": "Enviar mis datos",
+      "buttonSending": "Subiendo Documentos..."
+    },
+    "thankYou": {
+      "title": "¡Bienvenido a tu nueva familia farmacéutica!",
+      "subtitlePrefix": "Tus datos están a salvo. ",
+      "subtitleBold": "Revisaremos tu solicitud y responderemos de inmediato.",
+      "buttonText": "Regresar al inicio"
+    }
+  }
+}

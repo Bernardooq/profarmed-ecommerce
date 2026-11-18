@@ -1,0 +1,270 @@
+import { useState, useEffect } from 'react';
+import { userService } from '../../services/userService';
+import { useAuth } from '../../context/AuthContext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+
+export default function ModalEditProfile({ isOpen, onClose }) {
+    const { user, login } = useAuth(); // Need login to update context if profile changes
+    const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'password'
+
+    // Profile State
+    const [profileData, setProfileData] = useState({
+        username: '',
+        email: '',
+        full_name: ''
+    });
+
+    // Password State
+    const [passwordData, setPasswordData] = useState({
+        newPassword: '',
+        confirmPassword: ''
+    });
+
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+
+    useEffect(() => {
+        if (isOpen && user) {
+            loadProfile();
+            setError('');
+            setSuccess('');
+            setPasswordData({ newPassword: '', confirmPassword: '' });
+            setShowPassword(false);
+            setActiveTab('profile');
+        }
+    }, [isOpen, user]);
+
+    const loadProfile = async () => {
+        setLoading(true);
+        try {
+            const data = await userService.getCurrentUser();
+            setProfileData({
+                username: data.username || '',
+                email: data.email || '',
+                full_name: data.full_name || '',
+                notificate: data.notificate || false
+            });
+        } catch (err) {
+            setError('Error al cargar la información del perfil.');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleProfileChange = (e) => {
+        const { name, value } = e.target;
+        setProfileData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handlePasswordChange = (e) => {
+        const { name, value } = e.target;
+        setPasswordData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleProfileSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setSuccess('');
+        setLoading(true);
+
+        try {
+            let dataToSend = profileData;
+            if (user?.role === 'customer') {
+                dataToSend = { notificate: profileData.notificate };
+            }
+            const updatedUser = await userService.updateCurrentUser(dataToSend);
+            setSuccess('Perfil actualizado exitosamente.');
+        } catch (err) {
+            setError(err.message || 'Error al actualizar el perfil.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePasswordSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setSuccess('');
+
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            setError('Las contraseñas no coinciden');
+            return;
+        }
+        if (passwordData.newPassword.length < 8) {
+            setError('La contraseña debe tener al menos 8 caracteres');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await userService.updateCurrentUser({ password: passwordData.newPassword });
+            setSuccess('Contraseña actualizada exitosamente.');
+            setPasswordData({ newPassword: '', confirmPassword: '' });
+        } catch (err) {
+            setError(err.message || 'Error al actualizar la contraseña');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+                <div className="modal__header">
+                    <h2>Mi Perfil</h2>
+                    <button className="modal__close" onClick={onClose} aria-label="Cerrar modal">×</button>
+                </div>
+
+                <div className="modal__tabs">
+                    <button
+                        className={`modal__tab ${activeTab === 'profile' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('profile')}
+                    >
+                        Información Personal
+                    </button>
+                    <button
+                        className={`modal__tab ${activeTab === 'password' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('password')}
+                    >
+                        Seguridad
+                    </button>
+                </div>
+
+                <div className="modal__body">
+                    {error && <div className="alert alert--danger mb-4">{error}</div>}
+                    {success && <div className="alert alert--success mb-4">{success}</div>}
+
+                    {activeTab === 'profile' ? (
+                        <form onSubmit={handleProfileSubmit} className="modal__form">
+                            <div className="form-group">
+                                <label className="form-group__label" htmlFor="username">Nombre de Usuario</label>
+                                <input
+                                    className="input"
+                                    type="text"
+                                    id="username"
+                                    name="username"
+                                    value={profileData.username}
+                                    onChange={handleProfileChange}
+                                    required
+                                    disabled={loading || user?.role !== 'admin'}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-group__label" htmlFor="email">Email</label>
+                                <input
+                                    className="input"
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    value={profileData.email}
+                                    onChange={handleProfileChange}
+                                    required
+                                    disabled={loading || user?.role !== 'admin'}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-group__label" htmlFor="full_name">Nombre Completo</label>
+                                <input
+                                    className="input"
+                                    type="text"
+                                    id="full_name"
+                                    name="full_name"
+                                    value={profileData.full_name}
+                                    onChange={handleProfileChange}
+                                    disabled={loading || user?.role !== 'admin'}
+                                />
+                            </div>
+                            {user?.role === 'customer' && (
+                                <div className="form-group form-group--checkbox">
+                                    <input
+                                        type="checkbox"
+                                        className="checkbox"
+                                        id="notificate"
+                                        name="notificate"
+                                        checked={profileData.notificate || false}
+                                        onChange={(e) => setProfileData(prev => ({ ...prev, notificate: e.target.checked }))}
+                                        disabled={loading}
+                                    />
+                                    <label htmlFor="notificate">
+                                        Recibir notificaciones por correo de mis pedidos (envíos y entregas) y promociones
+                                    </label>
+                                </div>
+                            )}
+                            <div className="modal__footer">
+                                <button type="button" className="btn btn--secondary" onClick={onClose} disabled={loading}>Cerrar</button>
+                                {user?.role === 'admin' || user?.role === 'customer' ? (
+                                    <button type="submit" className="btn btn--primary" disabled={loading}>
+                                        {loading ? 'Guardando...' : 'Guardar Cambios'}
+                                    </button>
+                                ) : (
+                                    <span className="text-sm text-gray-500" style={{ marginLeft: 'auto', fontStyle: 'italic' }}>
+                                        Contacte al administrador para modificar
+                                    </span>
+                                )}
+                            </div>
+                        </form>
+                    ) : (
+                        <form onSubmit={handlePasswordSubmit} className="modal__form">
+                            <div className="form-group">
+                                <label className="form-group__label" htmlFor="newPassword">Nueva Contraseña</label>
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        className="input"
+                                        type={showPassword ? 'text' : 'password'}
+                                        id="newPassword"
+                                        name="newPassword"
+                                        value={passwordData.newPassword}
+                                        onChange={handlePasswordChange}
+                                        required
+                                        disabled={loading}
+                                        minLength="8"
+                                        placeholder="Mínimo 8 caracteres"
+                                        style={{ paddingRight: '2.5rem' }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '0.25rem' }}
+                                        aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                                        tabIndex={-1}
+                                    >
+                                        <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-group__label" htmlFor="confirmPassword">Confirmar Contraseña</label>
+                                <input
+                                    className="input"
+                                    type="password"
+                                    id="confirmPassword"
+                                    name="confirmPassword"
+                                    value={passwordData.confirmPassword}
+                                    onChange={handlePasswordChange}
+                                    required
+                                    disabled={loading}
+                                    minLength="8"
+                                    placeholder="Repite la nueva contraseña"
+                                />
+                            </div>
+                            <div className="modal__footer">
+                                <button type="button" className="btn btn--secondary" onClick={onClose} disabled={loading}>Cerrar</button>
+                                <button type="submit" className="btn btn--primary" disabled={loading}>
+                                    {loading ? 'Actualizando...' : 'Cambiar Contraseña'}
+                                </button>
+                            </div>
+                        </form>
+                    )}
+                </div>
+            </div>
+
+        </div>
+    );
+}
+

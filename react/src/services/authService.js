@@ -1,0 +1,95 @@
+import apiService from './apiService'
+import { API_BASE } from '../config/api'
+
+// Servicio encargado de manejar todo lo relacionado con autenticación
+export const authService = {
+
+  // Logear usuario con usuario/contraseña
+  // Ojo: FastAPI recibe los datos como form-data (URLSearchParams), no como JSON
+  async login(username, password, turnstileToken = '') {
+    const formData = new URLSearchParams()
+    formData.append('username', username)
+    formData.append('password', password)
+
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    }
+
+    // Agregar token de Turnstile CAPTCHA si existe
+    if (turnstileToken) {
+      headers['X-Turnstile-Token'] = turnstileToken
+    }
+
+    const response = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers,
+      body: formData
+    })
+
+    // Si algo falla, regresamos un error más legible
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Credenciales incorrectas' }))
+      throw new Error(error.detail || 'No se pudo iniciar sesión')
+    }
+
+    return await response.json() // { access_token, token_type }
+  },
+
+  // Registrar usuario nuevo (esto sí va como JSON)
+  async register(userData) {
+    return apiService.post('/auth/register', userData)
+  },
+
+  // Obtener los datos del usuario que ya está logeado (silencioso, no redirige si falla la validación inicial)
+  async getCurrentUser(noRedirect = false) {
+    return apiService.get('/auth/me', { _options: { noRedirect } })
+  },
+
+  // Logout: revoca el token en el servidor (blacklist) y lo elimina localmente
+  async logout() {
+    const token = localStorage.getItem('token')
+    if (token) {
+      try {
+        await fetch(`${API_BASE}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        })
+      } catch (e) {
+        // Si falla la revocación server-side, al menos limpiamos localmente
+        console.warn('Server-side logout failed, clearing token locally:', e)
+      }
+    }
+    localStorage.removeItem('token')
+  },
+
+  // === RECUPERACIÓN DE CONTRASEÑA (OTP) ===
+
+  // Solicitar código de recuperación de contraseña (6 dígitos por correo)
+  async requestPasswordResetCode(username) {
+    return apiService.post('/auth/password-reset/request-code', { username }, { noRedirect: true })
+  },
+
+  // Reenviar código si no llegó el anterior
+  async resendPasswordResetCode(username) {
+    return apiService.post('/auth/password-reset/resend-code', { username }, { noRedirect: true })
+  },
+
+  // Validar código OTP de 6 dígitos
+  async verifyPasswordResetCode(username, code) {
+    return apiService.post('/auth/password-reset/verify-code', { username, code }, { noRedirect: true })
+  },
+
+  // Confirmar y cambiar contraseña definitivamente
+  async confirmPasswordReset(username, code, newPassword) {
+    return apiService.post('/auth/password-reset/confirm', { 
+      username, 
+      code, 
+      new_password: newPassword 
+    }, { noRedirect: true })
+  }
+}
+
+export default authService

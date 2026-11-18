@@ -1,0 +1,128 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Plantilla base para Windows Server 2022 en EC2 con acceso RDP y SSM.
+  (Sin Key Pair: La contraseña de Administrator se define por parámetro).
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Default: 'vpc-093eb7d9175bb52b7' # <-- SUSTITUYE ESTO por el ID de tu VPC (ej. vpc-0a1b2c...)
+    Description: "Selecciona la VPC donde se desplegará el servidor."
+  
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Default: 'subnet-0521e944842df176e' # <-- SUSTITUYE ESTO por el ID de tu Subnet pública
+    Description: "Selecciona la Subred (debe tener salida a internet)."
+    
+  AppName:
+    Type: String
+    Default: 'Profa-AlphaERP' # <-- SUSTITUYE ESTO o déjalo así si es para este ERP
+    Description: "Nombre del proyecto o cliente (ej. Profa-AlphaERP)."
+    
+  AppId:
+    Type: Number
+    Default: 1 # <-- SUSTITUYE ESTO por el ID numérico de tu cliente
+    Description: "ID único del proyecto (usado para etiquetado y control de costos)."
+
+  AdminPassword:
+    Type: String
+    NoEcho: true
+    Default: 'PFmed2026' # <-- SUSTITUYE ESTO por la contraseña segura que quieras usar para el RDP
+    Description: "Contraseña inicial para el usuario Administrator. Debe cumplir con las políticas de Windows (mayúsculas, minúsculas, números/símbolos)."
+
+  InstanceType:
+    Type: String
+    Default: 't3.large' # <-- SUSTITUYE ESTO por t3.xlarge si necesitas más recursos, o déjalo así
+    Description: "Tipo de instancia."
+
+  LatestWindowsAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-windows-latest/Windows_Server-2022-Spanish-Full-Base'
+    Description: "Obtiene la última imagen oficial de Windows Server 2022 en Español."
+
+Resources:
+  # ---------------------------------------------------------
+  # 1. IAM ROLE PARA SYSTEMS MANAGER (SSM)
+  # ---------------------------------------------------------
+  EC2SSMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AppName}-SSMRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub "${AppName}-InstanceProfile"
+      Roles:
+        - !Ref EC2SSMRole
+
+  # ---------------------------------------------------------
+  # 2. SEGURIDAD Y RED (Security Group)
+  # ---------------------------------------------------------
+  WindowsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: "Permite RDP externo para Windows Server"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3389
+          ToPort: 3389
+          CidrIp: 0.0.0.0/0 
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+        - Key: Name
+          Value: !Sub "${AppName}-SG"
+
+  # ---------------------------------------------------------
+  # 3. INSTANCIA EC2 (Windows Server)
+  # ---------------------------------------------------------
+  WindowsServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref LatestWindowsAmiId
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      NetworkInterfaces:
+        - DeviceIndex: '0'
+          AssociatePublicIpAddress: true 
+          SubnetId: !Ref SubnetId
+          GroupSet:
+            - !Ref WindowsSecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 60
+            VolumeType: gp3
+      UserData:
+        Fn::Base64: !Sub |
+          <powershell>
+          net user Administrador "${AdminPassword}"
+          </powershell>
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+        - Key: Name
+          Value: !Sub "${AppName}-Server"
+
+Outputs:
+  ServerPublicIP:
+    Description: "IP Pública para conectarte por RDP"
+    Value: !GetAtt WindowsServerInstance.PublicIp
+  ServerInstanceId:
+    Description: "ID de la instancia EC2"
+    Value: !Ref WindowsServerInstance

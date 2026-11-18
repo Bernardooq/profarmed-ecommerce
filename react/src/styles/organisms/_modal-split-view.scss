@@ -1,0 +1,466 @@
+// ============================================
+// ORGANISM — MODAL SPLIT VIEW
+// Generic 2-column layout for modals (Groups, PriceLists)
+// ============================================
+
+// TABS COMPONENT (Used in split view modals)
+.tabs {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+    border-bottom: var(--border-width) solid var(--color-border);
+    padding-bottom: var(--space-2);
+    overflow-x: auto; // Handle many tabs on small screens
+
+    &__btn {
+        padding: var(--space-2) var(--space-4);
+        border-radius: var(--radius-md);
+        background: transparent;
+        border: none;
+        color: var(--color-text-muted);
+        font-weight: var(--font-medium);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        transition: all 0.2s ease;
+        white-space: nowrap;
+
+        &:hover {
+            background: var(--color-bg-subtle);
+            color: var(--color-text);
+        }
+
+        &--active {
+            background: var(--color-primary-subtle); // Assuming this variable exists or similar
+            color: var(--color-primary);
+            font-weight: var(--font-bold);
+            background-color: color-mix(in srgb, var(--color-primary) 10%, transparent); // Fallback mixed color
+        }
+    }
+}
+
+// SPLIT VIEW LAYOUT
+.split-view {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    height: 100%; // Ensure it fills modal body
+    min-height: auto;
+
+    @media (min-width: 900px) {
+        flex-direction: row;
+        gap: var(--space-6);
+        min-height: 500px; // Minimum height for desktop
+    }
+
+    &__column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+        min-width: 0;
+        height: 100%;
+
+        // Header within column
+        h3 {
+            font-size: var(--text-base);
+            font-weight: var(--font-bold);
+            color: var(--color-primary);
+            margin: 0;
+            padding-bottom: var(--space-2);
+            border-bottom: var(--border-width) solid var(--color-border);
+        }
+    }
+
+    &__list-container {
+        flex: 1;
+        position: relative;
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-lg);
+        background: var(--color-bg-subtle);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        min-height: 220px;
+        max-height: 360px;
+
+        @media (max-width: 640px) {
+            min-height: 220px;
+            max-height: 380px;
+        }
+
+        @media (min-width: 900px) {
+            min-height: 340px;
+            max-height: none;
+        }
+    }
+
+    &__list {
+        list-style: none;
+        padding: var(--space-2);
+        margin: 0;
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+
+        // Prevenir compresión vertical de items al aumentar la paginación
+        > * {
+            flex-shrink: 0 !important;
+        }
+
+        .product-card {
+            flex-shrink: 0 !important;
+            width: 100% !important;
+            min-height: fit-content !important;
+            box-sizing: border-box !important;
+        }
+
+        // Scrollbar
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: var(--color-border-strong);
+            border-radius: var(--radius-full);
+        }
+    }
+}
+
+// GENERIC LIST ITEM (Fallback or base for specific items)
+.list-item-card {
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    transition: all 0.2s ease;
+
+    &:hover {
+        border-color: var(--color-primary-light);
+        box-shadow: var(--shadow-sm);
+        transform: translateY(-1px);
+    }
+}
+
+// UTILITIES (Scoped to split view if needed, or general)
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.text-sm {
+    font-size: var(--text-sm);
+}
+
+.text-xs {
+    font-size: var(--text-xs);
+}
+
+.text-muted {
+    color: var(--color-text-muted);
+}
+
+.text-primary {
+    color: var(--color-primary);
+}
+
+.font-bold {
+    font-weight: var(--font-bold);
+}
+
+.d-flex {
+    display: flex;
+}
+
+.align-center {
+    align-items: center;
+}
+
+.gap-3 {
+    gap: var(--space-3);
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.overflow-hidden {
+    overflow: hidden;
+}
+
+// Product row thumbnail layout inside split-view cards
+.product-card {
+    &__row {
+        display: flex;
+        gap: var(--space-3);
+        padding: var(--space-3);
+        align-items: flex-start;
+    }
+
+    &__thumbnail {
+        width: 56px;
+        height: 56px;
+        object-fit: cover;
+        border-radius: var(--radius-md);
+        background: var(--color-bg-muted);
+        flex-shrink: 0;
+        border: var(--border-width) solid var(--color-border);
+    }
+
+    &__info-row {
+        padding: 0 !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+
+        .product-card__name {
+            font-size: var(--text-sm);
+            font-weight: var(--font-bold);
+            color: var(--color-text);
+            line-height: var(--leading-tight);
+            word-break: break-word;
+            margin-bottom: 2px;
+        }
+
+        .product-card__meta {
+            font-size: var(--text-xs);
+            color: var(--color-text-muted);
+            line-height: 1.35;
+        }
+
+        .product-card__price {
+            font-size: var(--text-xs);
+            color: var(--color-text);
+            margin-top: 2px;
+
+            strong {
+                font-size: var(--text-sm);
+                color: var(--color-success-text);
+            }
+        }
+    }
+
+    &__actions {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: 0 var(--space-3) var(--space-3) var(--space-3);
+        border-top: var(--border-width) solid var(--color-border-subtle, rgba(0, 0, 0, 0.05));
+        margin-top: var(--space-2);
+        padding-top: var(--space-2);
+
+        &.justify-between {
+            justify-content: space-between;
+        }
+
+        &.justify-end {
+            justify-content: flex-end;
+        }
+    }
+
+    &--in-list {
+        background: var(--color-surface);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-xs);
+        transition: all 0.2s ease;
+
+        &:hover {
+            border-color: var(--color-primary-light);
+            box-shadow: var(--shadow-sm);
+        }
+    }
+}
+
+// SINGLE VIEW / READ-ONLY CONSULTATION LAYOUT (Single-column, scalable to 200+ items)
+.single-view {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    width: 100%;
+
+    &__toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        padding: var(--space-3);
+        background: var(--color-bg-subtle);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-lg);
+    }
+
+    &__info {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-size: var(--text-sm);
+        color: var(--color-text);
+        flex: 1;
+        min-width: 250px;
+    }
+
+    &__search {
+        max-width: 340px;
+        width: 100%;
+        margin: 0;
+    }
+
+    &__list-container {
+        max-height: 65vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-lg);
+        background: var(--color-bg-subtle);
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        width: 100%;
+        padding: var(--space-3);
+        margin: 0;
+        list-style: none;
+
+        // Prevenir compresión vertical en vista individual
+        > * {
+            flex-shrink: 0 !important;
+        }
+
+        .product-card,
+        .product-card--read-only {
+            flex-shrink: 0 !important;
+            width: 100% !important;
+            min-height: fit-content !important;
+            box-sizing: border-box !important;
+        }
+    }
+}
+
+// READ-ONLY PRODUCT CARD (Horizontal full-width row)
+.product-card--read-only {
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
+
+    &:hover {
+        border-color: var(--color-primary-light);
+        box-shadow: var(--shadow-md);
+    }
+
+    .product-card__main-content {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        flex: 1;
+        min-width: 0;
+    }
+
+    .product-card__thumbnail-wrapper {
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        background: var(--color-bg-subtle);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: var(--border-width) solid var(--color-border);
+        flex-shrink: 0;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    .product-card__info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .product-card__name {
+        font-size: var(--text-sm);
+        font-weight: var(--font-bold);
+        color: var(--color-text);
+        line-height: var(--leading-tight);
+        word-break: break-word;
+    }
+
+    .product-card__meta-tags {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+    }
+
+    .product-card__price-section {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        flex-shrink: 0;
+        min-width: 130px;
+        text-align: right;
+        gap: 2px;
+    }
+
+    .product-card__final-price {
+        font-size: var(--text-lg);
+        font-weight: var(--font-bold);
+        color: var(--color-success-text);
+        line-height: 1.1;
+    }
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        align-items: stretch;
+
+        .product-card__price-section {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            border-top: var(--border-width) dashed var(--color-border);
+            padding-top: var(--space-2);
+            margin-top: var(--space-1);
+            width: 100%;
+        }
+    }
+}
+
+// Input markup width helper
+.input--markup {
+    width: 90px;
+}

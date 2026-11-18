@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  AWS CloudFormation Shared Network Stack - S3 Gateway VPC Endpoint.
+  Aprovisiona un unico Gateway VPC Endpoint gratuito para Amazon S3 a nivel de VPC y Route Table.
+  Este stack se despliega UNA SOLA VEZ por VPC/Route Table y permite que multiples stacks de aplicaciones
+  (Profarmed, Profarmed, Profarmed, Demo, etc.) enruten su trafico hacia S3 y layers de ECR por la red interna de AWS a costo $0
+  sin colisiones de rutas (RouteAlreadyExists).
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "1. Red Compartida (VPC & Route Table)"
+        Parameters:
+          - VpcId
+          - PublicRouteTableId
+      - Label:
+          default: "2. Etiquetado (Tags)"
+        Parameters:
+          - AppName
+          - AppId
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Default: vpc-070b6ee4688c64481
+    Description: "[OBLIGATORIO] ID de tu VPC compartida."
+
+  PublicRouteTableId:
+    Type: String
+    Default: rtb-0c907546a70b221af
+    Description: "[OBLIGATORIO] ID de la Route Table asociada a las subnets para inyectar la ruta hacia el Gateway VPC Endpoint de S3."
+
+  AppName:
+    Type: String
+    Default: shared-network-s3-endpoint
+    Description: Nombre identificador para etiquetado del recurso compartido (tag appname).
+
+  AppId:
+    Type: String
+    Default: "0"
+    Description: Identificador de aplicacion para etiquetado (tag appid).
+
+Resources:
+  # Gateway VPC Endpoint gratuito para S3 (enruta trafico hacia S3 y layers de ECR por la red interna de AWS a costo $0)
+  S3VpcEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref VpcId
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
+      VpcEndpointType: Gateway
+      RouteTableIds:
+        - !Ref PublicRouteTableId
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: "*"
+            Resource: "*"
+      Tags:
+        - Key: appname
+          Value: !Ref AppName
+        - Key: appid
+          Value: !Ref AppId
+
+Outputs:
+  S3VpcEndpointId:
+    Description: ID del Gateway VPC Endpoint de S3 compartido en la VPC
+    Value: !Ref S3VpcEndpoint
+    Export:
+      Name: !Sub "${AWS::StackName}-S3VpcEndpointId"

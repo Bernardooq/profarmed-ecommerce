@@ -1,0 +1,33 @@
+# 🧪 Simulación de Login - VSCode REST Client
+# ==========================================
+# Requisitos: Extensión "REST Client" de Huachao Mao instalada en VSCode.
+# Uso: Haz clic en "Send Request" que aparece sobre cada URL.
+
+# 🌍 Configuración de Entorno
+# Descomenta la línea que quieras usar (Local o Producción)
+@host = http://localhost:8000
+
+# 👤 Credenciales (Configura tus credenciales)
+@username = admin
+@password = password123
+
+###
+# 1️⃣ Login (Obtener Token)
+# @name login
+POST {{host}}/api/v1/auth/login
+Content-Type: application/x-www-form-urlencoded
+
+username={{username}}
+&password={{password}}
+
+###
+# 2️⃣ Verificar Token (Get Me)
+# Usa el token obtenido arriba para ver tus datos de usuario.
+GET {{host}}/api/v1/users/me
+Authorization: Bearer {{login.response.body.access_token}}
+
+###
+# 3️⃣ Ejemplo: Listar Productos (Endpoint Protegido)
+# Prueba de que el token funciona en otras rutas.
+GET {{host}}/api/v1/products?skip=0&limit=5
+Authorization: Bearer {{login.response.body.access_token}}

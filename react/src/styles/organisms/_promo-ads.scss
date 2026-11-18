@@ -1,0 +1,446 @@
+// ====================================================
+// LAB ADS — Publicidad de Inicio (Inicio B2B)
+// ====================================================
+
+.promo-ads {
+  padding-top: var(--space-4, 1rem);
+  padding-bottom: var(--space-8, 2rem);
+
+  &__sections {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6, 1.5rem);
+    margin-top: var(--space-4, 1rem);
+  }
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3, 0.75rem);
+  }
+
+  &__section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__section-title {
+    margin: 0;
+    font-size: var(--font-size-lg, 1.125rem);
+    font-weight: 700;
+    color: var(--color-text-primary, var(--text-primary));
+  }
+
+  &__grid {
+    display: grid;
+    gap: var(--space-4, 1rem);
+    width: 100%;
+
+    &--cols-1 {
+      grid-template-columns: 1fr;
+    }
+
+    &--cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    &--cols-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    &--cols-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    @media (max-width: 1023px) {
+      &--cols-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      &--cols-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 639px) {
+      &--cols-2,
+      &--cols-3 {
+        grid-template-columns: 1fr;
+      }
+
+      &--cols-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-3, 0.75rem);
+      }
+    }
+  }
+
+  &__slot {
+    position: relative;
+    width: 100%;
+    border-radius: var(--radius-lg, 12px);
+    overflow: hidden;
+    background-color: var(--color-surface, var(--surface-primary, #ffffff));
+    border: 1px solid var(--color-border, var(--border-color, rgba(0, 0, 0, 0.08)));
+    box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
+  }
+
+  &__carousel {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  &__track {
+    display: flex;
+    width: 100%;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  &__slide {
+    flex: 0 0 100%;
+    width: 100%;
+  }
+
+  &__media {
+    display: block;
+    width: 100%;
+    line-height: 0;
+
+    &--clickable {
+      cursor: pointer;
+
+      &:hover .promo-ads__img {
+        transform: scale(1.015);
+      }
+    }
+  }
+
+  &__picture {
+    display: block;
+    width: 100%;
+  }
+
+  &__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  &__arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(15, 23, 42, 0.62);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+
+    &:hover {
+      opacity: 1;
+      background: rgba(15, 23, 42, 0.85);
+    }
+
+    &--prev {
+      left: 10px;
+    }
+
+    &--next {
+      right: 10px;
+    }
+  }
+
+  &__dots {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: width 0.2s ease, background-color 0.2s ease;
+
+    &--active {
+      width: 20px;
+      border-radius: 999px;
+      background: #ffffff;
+    }
+  }
+
+  &__cta {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-8, 2rem);
+  }
+
+  &__cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2, 0.5rem);
+  }
+}
+
+// ====================================================
+// LAB ADS ADMIN — Panel de Gestión y Modales (BEM)
+// ====================================================
+
+.promo-ads-admin {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3, 0.75rem);
+  }
+
+  &__title {
+    margin-bottom: var(--space-1, 0.25rem);
+  }
+
+  &__subtitle {
+    margin: 0;
+  }
+
+  &__header-actions {
+    display: flex;
+    gap: var(--space-2, 0.5rem);
+    flex-wrap: wrap;
+  }
+
+  &__empty {
+    padding: 3rem 1rem;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5, 1.25rem);
+    margin-top: var(--space-4, 1rem);
+  }
+
+  &__card {
+    border: 1px solid var(--color-border, rgba(0, 0, 0, 0.1));
+    border-radius: var(--radius-lg, 12px);
+    padding: var(--space-4, 1rem);
+    background-color: var(--color-surface, #ffffff);
+  }
+
+  &__card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3, 0.75rem);
+    margin-bottom: var(--space-4, 1rem);
+  }
+
+  &__card-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3, 0.75rem);
+    flex-wrap: wrap;
+  }
+
+  &__card-title {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+
+  &__status-btn {
+    border: none;
+    cursor: pointer;
+
+    &:disabled {
+      cursor: default;
+    }
+  }
+
+  &__card-actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  &__slot-box {
+    border: 1px dashed var(--color-border, #cbd5e1);
+    border-radius: var(--radius-md, 10px);
+    padding: var(--space-3, 0.75rem);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2, 0.5rem);
+  }
+
+  &__slot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__slot-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  &__slot-badge {
+    margin-left: 4px;
+  }
+
+  &__slot-empty {
+    text-align: center;
+    padding: 1rem 0;
+  }
+
+  &__items-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2, 0.5rem);
+  }
+
+  &__item-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 0.5rem);
+    padding: 0.4rem;
+    border-radius: var(--radius-sm, 8px);
+    border: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
+  }
+
+  &__item-thumb {
+    width: 56px;
+    height: 38px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  &__item-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__item-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__item-sub {
+    font-size: 0.72rem;
+    opacity: 0.75;
+  }
+
+  &__item-actions {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  &__upload-row {
+    display: flex;
+    gap: var(--space-2, 0.5rem);
+    align-items: center;
+  }
+
+  &__upload-input {
+    flex: 1;
+  }
+
+  &__upload-btn {
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  &__hidden-file {
+    display: none;
+  }
+
+  &__checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 0.5rem);
+    cursor: pointer;
+  }
+}
+
+.promo-ads-preview {
+  &__modal {
+    max-width: 1100px;
+    width: 95%;
+  }
+
+  &__header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4, 1rem);
+    flex-wrap: wrap;
+  }
+
+  &__title {
+    margin: 0;
+  }
+
+  &__toggles {
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  &__empty {
+    padding: 2rem;
+  }
+
+  &__frame {
+    max-width: 100%;
+    margin: 0 auto;
+    transition: width 0.25s ease;
+
+    &--desktop {
+      width: 100%;
+    }
+
+    &--tablet {
+      width: 768px;
+      border: 1px dashed var(--color-border, #cbd5e1);
+      padding: var(--space-3, 0.75rem);
+      border-radius: var(--radius-md, 10px);
+    }
+
+    &--mobile {
+      width: 390px;
+      border: 1px dashed var(--color-border, #cbd5e1);
+      padding: var(--space-3, 0.75rem);
+      border-radius: var(--radius-md, 10px);
+    }
+  }
+
+  &__sections {
+    margin-top: 0;
+  }
+}

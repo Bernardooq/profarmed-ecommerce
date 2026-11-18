@@ -1,0 +1,32 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "S3BucketList",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetBucketLocation"
+      ],
+      "Resource": [
+        "arn:aws:s3:::${IMGS_BUCKET_NAME}",
+        "arn:aws:s3:::${PROMOS_BUCKET_NAME}",
+        "arn:aws:s3:::${DOCS_BUCKET_NAME}"
+      ]
+    },
+    {
+      "Sid": "S3ObjectCRUD",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::${IMGS_BUCKET_NAME}/*",
+        "arn:aws:s3:::${PROMOS_BUCKET_NAME}/*",
+        "arn:aws:s3:::${DOCS_BUCKET_NAME}/*"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,439 @@
+@use '../tokens/breakpoints' as *;
+
+// ============================================
+// TEMPLATE — DASHBOARD LAYOUT (admin/seller/marketing)
+// ============================================
+
+.dashboard-layout {
+    flex: 1;
+    padding: var(--space-4) 0;
+    min-height: calc(100vh - 70px);
+
+    @include tablet {
+        padding: var(--space-6) 0;
+    }
+
+    @include desktop {
+        padding: var(--space-8) 0;
+    }
+
+    &__container {
+        @include container;
+    }
+
+    &__header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        margin-bottom: var(--space-6);
+
+        @include max-tablet {
+            gap: var(--space-3);
+        }
+
+        @include max-phone {
+            gap: var(--space-2);
+            margin-bottom: var(--space-3);
+        }
+
+        .dashboard-layout__greeting {
+            margin-bottom: var(--space-1);
+            text-align: left;
+
+            @include max-phone {
+                font-size: 1.2rem;
+                margin-bottom: 2px;
+            }
+        }
+
+        .items-per-page-selector {
+            margin-left: 0;
+        }
+    }
+
+    &__controls {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-left: auto;
+
+        @include max-phone {
+            width: 100%;
+            justify-content: space-between;
+            margin-left: 0;
+            gap: var(--space-2);
+        }
+    }
+
+    &__config-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-weight: var(--font-bold);
+        white-space: nowrap;
+        flex-shrink: 0;
+        box-shadow: var(--shadow-sm);
+
+        @include max-phone {
+            padding: var(--space-2) var(--space-3);
+            font-size: var(--text-xs);
+
+            .dashboard-layout__config-btn-text {
+                display: none;
+            }
+        }
+    }
+
+    &__greeting {
+        font-size: var(--text-xl);
+        font-weight: var(--font-bold);
+        color: var(--color-text);
+        margin-bottom: var(--space-4);
+        text-align: center;
+        letter-spacing: -0.5px;
+
+        @include max-phone {
+            font-size: 1.25rem;
+            margin-bottom: var(--space-2);
+        }
+
+        @include tablet {
+            font-size: var(--text-3xl);
+            margin-bottom: var(--space-6);
+            letter-spacing: -1px;
+        }
+
+        @include desktop {
+            font-size: var(--text-4xl);
+            text-align: left; // Align to the left on larger screens for cleaner look
+        }
+
+        span {
+            color: var(--color-primary);
+        }
+    }
+
+    // ── Pill-style tabs navigation ──────────────
+    &__tabs {
+        margin-bottom: var(--space-6);
+
+        @include max-phone {
+            margin-bottom: var(--space-4);
+        }
+
+        @include desktop {
+            margin-bottom: var(--space-8);
+        }
+    }
+
+    &__tabs-nav {
+        display: flex;
+        gap: var(--space-1);
+        background: var(--color-surface);
+        border-radius: var(--radius-xl);
+        padding: var(--space-1) var(--space-2);
+        margin-bottom: var(--space-6);
+        box-shadow: var(--shadow-sm);
+        border: var(--border-width) solid var(--color-border);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+
+        // Hide scrollbar but keep functionality
+        scrollbar-width: none; // Firefox
+
+        &::-webkit-scrollbar {
+            display: none; // Safari and Chrome
+        }
+
+        @include max-phone {
+            padding: 3px 6px;
+            gap: 4px;
+            margin-bottom: var(--space-3);
+            border-radius: var(--radius-lg);
+        }
+
+        @include tablet {
+            padding: var(--space-2);
+            gap: var(--space-2);
+        }
+
+        @include desktop {
+            flex-wrap: wrap; // Wrap tabs on desktop if there are many
+        }
+    }
+
+    &__tabs-content {
+        position: relative;
+        min-height: 200px;
+    }
+
+    &__tab {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-4);
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-text-muted);
+        border-radius: var(--radius-lg);
+        cursor: pointer;
+        white-space: nowrap;
+        border: none;
+        background: transparent;
+        transition: all 0.2s ease;
+
+        @include max-phone {
+            padding: 6px 10px;
+            font-size: 0.78rem;
+            gap: 4px;
+            border-radius: var(--radius-md);
+        }
+
+        @include tablet {
+            padding: var(--space-2) var(--space-5);
+            font-size: var(--text-base);
+        }
+
+        &:hover {
+            color: var(--color-text);
+            background: transparent;
+            opacity: 0.85;
+        }
+
+        &--active {
+            background: var(--color-primary);
+            color: var(--color-text-inverse);
+            font-weight: var(--font-semibold);
+            box-shadow: var(--shadow-sm);
+
+            &:hover {
+                background: var(--color-primary-hover);
+                color: var(--color-text-inverse);
+                opacity: 1;
+            }
+        }
+    }
+
+    &__tab-icon {
+        font-size: var(--text-base);
+
+        @include max-phone {
+            font-size: 0.85rem;
+        }
+
+        @include tablet {
+            font-size: var(--text-lg);
+        }
+    }
+
+    &__tab-label {
+        display: inline; // Always show the label but make text smaller on mobile
+    }
+
+    // Badge styling for pending items
+    .tab-badge-container {
+        display: inline-flex;
+        gap: var(--space-1);
+        margin-left: var(--space-2);
+        align-items: center;
+    }
+
+    .tab-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        font-size: var(--text-xs);
+        font-weight: var(--font-bold);
+        border-radius: var(--radius-full, 9999px);
+        color: var(--color-text-white, #ffffff);
+        box-shadow: var(--shadow-sm);
+        
+        &--contact {
+            background-color: var(--color-info); // Blue for messages
+        }
+        
+        &--client {
+            background-color: var(--color-success); // Green for client requests
+        }
+        
+        &--support {
+            background-color: var(--color-danger); // Red for support tickets
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────
+// RESPONSIVE SELECTION BUTTON — EQUIPO Y ROLES (CELULAR / MÓVIL)
+// ─────────────────────────────────────────────────────────
+.team-nav-mobile {
+    display: block;
+    margin-bottom: var(--space-4);
+
+    @include tablet {
+        display: none !important;
+    }
+}
+
+.team-nav-desktop {
+    display: none !important;
+
+    @include tablet {
+        display: flex !important;
+    }
+}
+
+.team-selection-btn-card {
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-3);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+
+    &:focus-within,
+    &:hover {
+        border-color: var(--color-primary);
+        box-shadow: var(--shadow-md);
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--space-2);
+        padding: 0 var(--space-1);
+    }
+
+    &__label {
+        font-size: var(--text-xs);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: var(--space-1);
+    }
+}
+
+.team-selection-btn {
+    position: relative;
+    width: 100%;
+    cursor: pointer;
+
+    &__native-select {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 2;
+        appearance: none;
+        -webkit-appearance: none;
+
+        &:focus ~ .team-selection-btn__body,
+        &:hover ~ .team-selection-btn__body {
+            border-color: var(--color-primary);
+            background: var(--color-surface);
+        }
+    }
+
+    &__body {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-3);
+        background: var(--color-bg-muted, rgba(0, 0, 0, 0.03));
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        transition: all 0.2s ease;
+        pointer-events: none;
+    }
+
+    &__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: var(--radius-md);
+        background: rgba(var(--color-primary-rgb, 59, 130, 246), 0.12);
+        color: var(--color-primary);
+        font-size: var(--text-xl);
+        flex-shrink: 0;
+    }
+
+    &__info {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 0;
+    }
+
+    &__title {
+        font-size: var(--text-base);
+        font-weight: var(--font-bold);
+        color: var(--color-text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__desc {
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 2px;
+    }
+
+    &__action {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        flex-shrink: 0;
+        color: var(--color-primary);
+    }
+
+    &__tag {
+        font-size: var(--text-xs);
+        font-weight: var(--font-semibold);
+        background: var(--color-surface);
+        padding: 3px 8px;
+        border-radius: var(--radius-full, 9999px);
+        border: 1px solid var(--color-border);
+    }
+
+    &__chevron {
+        font-size: var(--text-sm);
+        transition: transform 0.2s ease;
+    }
+}
+
+// Seller-specific greeting (legacy support)
+.seller-greeting {
+    margin-bottom: var(--space-6);
+
+    h1 {
+        font-size: var(--text-2xl);
+        font-weight: var(--font-bold);
+
+        span {
+            color: var(--color-primary);
+        }
+    }
+
+    p {
+        color: var(--color-text-muted);
+        font-size: var(--text-sm);
+        margin-top: var(--space-1);
+    }
+}

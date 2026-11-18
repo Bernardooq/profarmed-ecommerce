@@ -1,0 +1,72 @@
+import { formatCurrency } from '../../utils/formatUtils';
+
+export default function CartSummary({
+  items,
+  onCheckout,
+  processingCheckout = false
+}) {
+  // Calcula el subtotal sumando todos los items
+  const subtotal = items.reduce((sum, item) => {
+    const product = item.product || {};
+    const price = product.final_price || product.base_price || 0;
+    return sum + price * item.quantity;
+  }, 0);
+
+  // Calcula el ahorro total acumulado por promociones
+  const totalSavings = items.reduce((sum, item) => {
+    const product = item.product || {};
+    if (product.has_discount && product.original_price) {
+      const orig = product.original_price;
+      const current = product.final_price || product.base_price || 0;
+      return sum + Math.max(0, orig - current) * item.quantity;
+    }
+    return sum;
+  }, 0);
+
+  // El costo de envío será manejado por el backend
+  const total = subtotal;
+
+  const handleCheckout = () => {
+    onCheckout(); // Ya no pasamos shipping_cost
+  };
+
+  return (
+    <aside className="cart-summary-card">
+      <h2 className="section-title">Resumen del Pedido</h2>
+
+      {/* Subtotal */}
+      <div className="cart-summary-card__row">
+        <span>Subtotal:</span>
+        <span>{formatCurrency(subtotal)}</span>
+      </div>
+
+      {/* Fila destacada de ahorro si aplica */}
+      {totalSavings > 0 && (
+        <div className="cart-summary-card__row text-success font-bold">
+          <span>🎉 Ahorro Promociones:</span>
+          <span>-{formatCurrency(totalSavings)}</span>
+        </div>
+      )}
+
+      <div className="cart-summary-card__row">
+        <span>Precios de envío:</span>
+        <span>A calcular...</span>
+      </div>
+
+      {/* Total (sin costo de envío visible para clientes) */}
+      <div className="cart-summary-card__row cart-summary-card__row--total">
+        <span>Total:</span>
+        <span>{formatCurrency(total)}</span>
+      </div>
+
+      {/* Botón de Checkout */}
+      <button
+        className="btn btn--primary btn--block"
+        onClick={handleCheckout}
+        disabled={processingCheckout || items.length === 0}
+      >
+        {processingCheckout ? 'Procesando...' : 'Finalizar Pedido'}
+      </button>
+    </aside>
+  );
+}

@@ -1,0 +1,232 @@
+"""
+Router Principal de la API
+
+Centraliza todos los routers de modulos y los registra
+con sus prefijos y tags correspondientes.
+
+Estructura de la API:
+/api/v1/
+  ├── /auth           - Autenticacion (login, register)
+  ├── /users          - Perfil de usuario
+  ├── /customers      - CRUD de clientes
+  ├── /categories     - CRUD de categorias
+  ├── /products       - CRUD de productos
+  ├── /catalog        - Catalogo con precios para clientes
+  ├── /orders         - Gestion de pedidos y carrito
+  ├── /admin          - Administracion de usuarios
+  ├── /contact        - Formularios de contacto
+  ├── /admindash      - Dashboards y reportes
+  ├── /sales-groups   - Grupos de ventas
+  └── /price-lists    - Listas de precios
+  └── /sync           - Sincronizacion DBF
+
+Tags en Swagger:
+- Los tags organizan los endpoints en la documentacion API
+- Cada router tiene un tag descriptivo en español
+"""
+
+from fastapi import APIRouter
+from . import (
+    auth,
+    products,
+    orders,
+    admin,
+    categories,
+    contact,
+    client_request,
+    users,
+    dashboards,
+    commercial_groups,
+    price_lists,
+    customers,
+    catalog,
+    sync_batch,
+    sync_upload,
+    tickets,
+    favorites,
+    announcement,
+    public_announcement,
+    discounts,
+    warehouse,
+    roles,
+    password_reset,
+    system_configs,
+    promo_ads
+)
+
+# Router principal que agrupa todos los modulos
+api_router = APIRouter()
+
+# === AUTENTICACIoN ===
+api_router.include_router(
+    auth.router,
+    prefix="/auth",
+    tags=["Autenticacion"]
+)
+
+# === RECUPERACIÓN DE CONTRASEÑA (OTP) ===
+api_router.include_router(
+    password_reset.router,
+    prefix="/auth/password-reset",
+    tags=["Recuperacion de Contrasena"]
+)
+api_router.include_router(
+    password_reset.router,
+    prefix="/password-reset",
+    tags=["Recuperacion de Contrasena"]
+)
+
+# === ROLES Y PERMISOS (PBAC / RBAC) ===
+api_router.include_router(
+    roles.router,
+    tags=["Roles y Permisos"]
+)
+
+# === USUARIOS Y PERFIL ===
+api_router.include_router(
+    users.router,
+    prefix="/users",
+    tags=["Usuarios"]
+)
+
+# === CLIENTES ===
+api_router.include_router(
+    customers.router,
+    prefix="/customers",
+    tags=["Clientes"]
+)
+
+# === CATaLOGO Y PRODUCTOS ===
+api_router.include_router(
+    categories.router,
+    prefix="/categories",
+    tags=["Categorias"]
+)
+
+api_router.include_router(
+    products.router,
+    prefix="/products",
+    tags=["Productos"]
+)
+
+api_router.include_router(
+    catalog.router,
+    prefix="/catalog",
+    tags=["Catalogo Cliente"]
+)
+
+# === PEDIDOS ===
+api_router.include_router(
+    orders.router,
+    prefix="/orders",
+    tags=["Pedidos"]
+)
+
+# === ADMINISTRACIoN ===
+api_router.include_router(
+    admin.router,
+    prefix="/admin",
+    tags=["Administracion"]
+)
+
+api_router.include_router(
+    dashboards.router,
+    prefix="/admindash",
+    tags=["Dashboards"]
+)
+
+# === COMUNICACIoN ===
+api_router.include_router(
+    contact.router,
+    prefix="/contact",
+    tags=["Contacto"]
+)
+
+api_router.include_router(
+    client_request.router,
+    prefix="/client-request",
+    tags=["Solicitudes de Cliente"]
+)
+
+# === VENTAS ===
+api_router.include_router(
+    commercial_groups.router,
+    prefix="/sales-groups",
+    tags=["Grupos Comerciales"]
+)
+
+api_router.include_router(
+    price_lists.router,
+    prefix="/price-lists",
+    tags=["Listas de Precios"]
+)
+
+# === SINCRONIZACIÓN BATCH ===
+api_router.include_router(
+    sync_batch.router,
+    prefix="/sync",
+    tags=["Sincronizacion Batch"]
+)
+
+# === SINCRONIZACIÓN ASÍNCRONA UPLOAD (COMPRIMIDO) ===
+api_router.include_router(
+    sync_upload.router,
+    prefix="/sync-upload",
+    tags=["Sincronizacion Upload"]
+)
+
+# === SOPORTE (TICKETS) ===
+api_router.include_router(
+    tickets.router,
+    prefix="/tickets",
+    tags=["Tickets de Soporte"]
+)
+
+# === LISTAS DE FAVORITOS ===
+api_router.include_router(
+    favorites.router,
+    prefix="/favorites",
+    tags=["Favoritos"]
+)
+
+# === ANUNCIOS / PROMOS ===
+api_router.include_router(
+    announcement.router,
+    prefix="/admin/announcements",
+    tags=["Administracion Anuncios"]
+)
+
+api_router.include_router(
+    public_announcement.router,
+    prefix="/public/announcements",
+    tags=["Anuncios Publicos"]
+)
+
+# === DESCUENTOS DE PRODUCTOS ===
+api_router.include_router(
+    discounts.router,
+    prefix="/discounts",
+    tags=["Descuentos"]
+)
+
+# === ALMACÉN / BODEGA ===
+api_router.include_router(
+    warehouse.router,
+    prefix="/warehouse",
+    tags=["Almacén / Bodega"]
+)
+
+# === CONFIGURACIONES DEL SISTEMA (SYSTEM CONFIGS) ===
+api_router.include_router(
+    system_configs.router,
+    prefix="/system-configs",
+    tags=["Configuraciones del Sistema"]
+)
+
+# === PUBLICIDAD DE INICIO (LAB ADS) ===
+api_router.include_router(
+    promo_ads.router,
+    prefix="/promo-ads",
+    tags=["Publicidad de Inicio"]
+)
+

@@ -1,0 +1,95 @@
+// ============================================
+// DESIGN TOKENS — COLORS (PROFARMED BRAND)
+// Light theme (default) + Dark theme
+// ============================================
+
+:root {
+    // --- Brand Profarmed ---
+    --color-primary: #4eb070;          // Verde Profarmed
+    --color-primary-hover: #3d9a5d;
+    --color-primary-light: rgba(78, 176, 112, 0.12);
+    --color-secondary: #211f42;        // Azul Marino Profarmed
+    --color-secondary-hover: #0e101f;
+    --color-secondary-light: rgba(33, 31, 66, 0.10);
+    --color-accent: #7bbe7b;           // Verde Claro Profarmed
+    --color-accent-hover: #4eb070;
+
+    // --- Neutrals ---
+    --color-bg: #FFFFFF;
+    --color-bg-subtle: #F8FAFC;
+    --color-bg-muted: #F1F5F9;
+    --color-surface: #FFFFFF;
+    --color-surface-elevated: #FFFFFF;
+    --color-overlay: rgba(14, 16, 31, 0.45);
+    --color-border: rgba(33, 31, 66, 0.10);
+    --color-border-strong: rgba(33, 31, 66, 0.20);
+    --color-border-hover: rgba(33, 31, 66, 0.35);
+
+    // --- Text ---
+    --color-text: #0e101f;
+    --color-text-muted: rgba(14, 16, 31, 0.65);
+    --color-text-bright: #0e101f;
+    --color-text-inverse: #FFFFFF;
+    --color-text-white: #FFFFFF;
+    --color-neutral-dark: #0e101f;
+    --color-focus: #4eb070;
+
+    // --- Semantic ---
+    --color-success: #10B981;
+    --color-success-bg: rgba(16, 185, 129, 0.10);
+    --color-success-text: #065f46;
+    --color-warning: #F59E0B;
+    --color-warning-bg: rgba(245, 158, 11, 0.10);
+    --color-warning-text: #92400e;
+    --color-danger: #EF4444;
+    --color-danger-bg: rgba(239, 68, 68, 0.10);
+    --color-danger-text: #991b1b;
+    --color-info: #0EA5E9;
+    --color-info-bg: rgba(14, 165, 233, 0.10);
+    --color-info-text: #0369a1;
+}
+
+[data-theme="dark"] {
+    // --- Brand Profarmed Dark ---
+    --color-primary: #4eb070;
+    --color-primary-hover: #7bbe7b;
+    --color-primary-light: rgba(78, 176, 112, 0.16);
+    --color-secondary: #7bbe7b;
+    --color-secondary-hover: #4eb070;
+    --color-secondary-light: rgba(123, 190, 123, 0.15);
+    --color-accent: #211f42;
+    --color-accent-hover: #2d2a5a;
+
+    // --- Neutrals ---
+    --color-bg: #0e101f;
+    --color-bg-subtle: #14162b;
+    --color-bg-muted: #211f42;
+    --color-surface: #161830;
+    --color-surface-elevated: #211f42;
+    --color-overlay: rgba(0, 0, 0, 0.70);
+    --color-border: rgba(255, 255, 255, 0.08);
+    --color-border-strong: rgba(255, 255, 255, 0.16);
+    --color-border-hover: rgba(255, 255, 255, 0.28);
+
+    // --- Text ---
+    --color-text: #F1F5F9;
+    --color-text-muted: #94A3B8;
+    --color-text-bright: #FFFFFF;
+    --color-text-inverse: #0e101f;
+    --color-text-white: #FFFFFF;
+    --color-focus: #7bbe7b;
+
+    // --- Semantic ---
+    --color-success: #10B981;
+    --color-success-bg: rgba(16, 185, 129, 0.15);
+    --color-success-text: #34D399;
+    --color-warning: #F59E0B;
+    --color-warning-bg: rgba(245, 158, 11, 0.15);
+    --color-warning-text: #FBBF24;
+    --color-danger: #EF4444;
+    --color-danger-bg: rgba(239, 68, 68, 0.15);
+    --color-danger-text: #F87171;
+    --color-info: #38BDF8;
+    --color-info-bg: rgba(56, 189, 248, 0.15);
+    --color-info-text: #7DD3FC;
+}
