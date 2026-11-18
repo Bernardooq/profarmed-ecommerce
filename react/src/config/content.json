@@ -17,8 +17,8 @@
     "turnstileSiteKey": "0x4AAAAAACozwagS-q-IOY-7",
     "apiBaseUrl": "https://apiecommerce.profarmed.com.mx",
     "social": {
-      "instagram": "https://instagram.com",
-      "facebook": "https://facebook.com"
+      "instagram": "https://www.instagram.com/profarmedmx/",
+      "facebook": "https://www.facebook.com/profile.php?id=61561166728832"
     }
   },
   "footer": {
@@ -139,7 +139,7 @@
       "subtitlePrefix": "Mantenemos nuestra promesa de mejora continua con ",
       "subtitleHighlight": "compromiso, respeto, responsabilidad e integridad.",
       "ctaText": "Ver reseñas completas",
-      "ctaLink": "/about",
+      "ctaLink": "https://www.facebook.com/profile.php?id=61561166728832&sk=reviews",
       "items": [
         {
           "name": "Karla Montes",

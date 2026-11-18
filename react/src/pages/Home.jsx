@@ -231,9 +231,20 @@ export default function Home() {
                     <span className="pf-split__highlight">{reviews.subtitleHighlight}</span>
                   </p>
                   <div style={{ marginTop: 'var(--space-6)' }}>
-                    <Link to={reviews.ctaLink || '/about'} className="pf-pill-btn pf-pill-btn--dark-text">
-                      {reviews.ctaText}
-                    </Link>
+                    {/^https?:\/\//i.test(reviews.ctaLink || '') ? (
+                      <a
+                        href={reviews.ctaLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="pf-pill-btn pf-pill-btn--dark-text"
+                      >
+                        {reviews.ctaText}
+                      </a>
+                    ) : (
+                      <Link to={reviews.ctaLink || '/about'} className="pf-pill-btn pf-pill-btn--dark-text">
+                        {reviews.ctaText}
+                      </Link>
+                    )}
                   </div>
                 </div>
               </div>
