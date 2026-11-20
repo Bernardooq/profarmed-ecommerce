@@ -1,0 +1,132 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Profarmed B2B - AWS Backup Plan para RDS PostgreSQL.
+  Crea un Backup Vault, un Backup Plan semanal con retencion de 30 dias
+  (America/Mexico_City) y la seleccion del recurso RDS etiquetado.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: profarmed
+    Description: Nombre corto del proyecto.
+
+  AppName:
+    Type: String
+    Default: profarmed
+    Description: Valor de la etiqueta appname aplicada al RDS y a los recovery points.
+
+  AppId:
+    Type: String
+    Default: "6"
+    Description: Valor de la etiqueta appid aplicada al RDS y a los recovery points.
+
+  BackupVaultName:
+    Type: String
+    Default: Profarmed
+    Description: Nombre del AWS Backup Vault donde se almacenaran los respaldos.
+
+  BackupPlanPrefix:
+    Type: String
+    Default: Profarmed
+    Description: Prefijo para el nombre del Backup Plan y Backup Selection.
+
+  DatabaseArn:
+    Type: String
+    Default: arn:aws:rds:us-east-1:817697649850:db:profarmed
+    Description: ARN de la instancia RDS a respaldar.
+
+  ScheduleExpression:
+    Type: String
+    Default: "cron(30 0 ? * 7 *)"
+    Description: Expresion cron de AWS Backup (por defecto sabados 00:30 AM America/Mexico_City).
+
+  ScheduleTimezone:
+    Type: String
+    Default: America/Mexico_City
+    Description: Zona horaria IANA para la ejecucion del respaldo.
+
+  RetentionDays:
+    Type: Number
+    Default: 30
+    MinValue: 1
+    Description: Dias de retencion antes de eliminar el recovery point.
+
+  StartWindowMinutes:
+    Type: Number
+    Default: 480
+    MinValue: 60
+    Description: Ventana de inicio en minutos para comenzar el job de respaldo.
+
+  CompletionWindowMinutes:
+    Type: Number
+    Default: 10080
+    MinValue: 120
+    Description: Ventana maxima en minutos para completar el job de respaldo.
+
+  BackupIamRoleArn:
+    Type: String
+    Default: arn:aws:iam::817697649850:role/service-role/AWSBackupDefaultServiceRole
+    Description: ARN del rol IAM usado por AWS Backup para ejecutar respaldos de RDS.
+
+Resources:
+  BackupVault:
+    Type: AWS::Backup::BackupVault
+    Properties:
+      BackupVaultName: !Ref BackupVaultName
+      BackupVaultTags:
+        appname: !Ref AppName
+        appid: !Ref AppId
+
+  BackupPlan:
+    Type: AWS::Backup::BackupPlan
+    Properties:
+      BackupPlan:
+        BackupPlanName: !Sub "${BackupPlanPrefix}-Weekly-Plan"
+        BackupPlanRule:
+          - RuleName: Weekly-30Day-Retention
+            TargetBackupVault: !Ref BackupVault
+            ScheduleExpression: !Ref ScheduleExpression
+            ScheduleExpressionTimezone: !Ref ScheduleTimezone
+            StartWindowMinutes: !Ref StartWindowMinutes
+            CompletionWindowMinutes: !Ref CompletionWindowMinutes
+            Lifecycle:
+              DeleteAfterDays: !Ref RetentionDays
+            RecoveryPointTags:
+              appname: !Ref AppName
+              appid: !Ref AppId
+      BackupPlanTags:
+        appname: !Ref AppName
+        appid: !Ref AppId
+
+  BackupSelection:
+    Type: AWS::Backup::BackupSelection
+    Properties:
+      BackupPlanId: !Ref BackupPlan
+      BackupSelection:
+        SelectionName: !Sub "${BackupPlanPrefix}-DB-Assignment"
+        IamRoleArn: !Ref BackupIamRoleArn
+        Resources:
+          - !Ref DatabaseArn
+        Conditions:
+          StringEquals:
+            - ConditionKey: aws:ResourceTag/appname
+              ConditionValue: !Ref AppName
+            - ConditionKey: aws:ResourceTag/appid
+              ConditionValue: !Ref AppId
+
+Outputs:
+  BackupVaultName:
+    Description: Nombre del Backup Vault creado
+    Value: !Ref BackupVault
+  BackupVaultArn:
+    Description: ARN del Backup Vault creado
+    Value: !GetAtt BackupVault.BackupVaultArn
+  BackupPlanId:
+    Description: ID del Backup Plan creado
+    Value: !Ref BackupPlan
+  BackupPlanArn:
+    Description: ARN del Backup Plan creado
+    Value: !GetAtt BackupPlan.BackupPlanArn
+  BackupSelectionId:
+    Description: ID de la seleccion de recursos RDS
+    Value: !Ref BackupSelection

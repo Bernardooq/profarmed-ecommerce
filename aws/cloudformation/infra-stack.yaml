@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >
-  AWS CloudFormation Master Stack para B2B Ecommerce Platform (Profarmed / Profarmed / Profarmed).
+  AWS CloudFormation Master Stack para B2B Ecommerce Platform (Profarmed).
   Aprovisiona: S3 Buckets (Frontend, Imgs, Promos, Docs con nombres parametrizados), CloudFront CDNs con OAC y SSL ACM,
   ECR Repository, SSM Parameter Store, Roles IAM de Minimo Privilegio (EC2 y CI/CD GitHub Deployer),
   Security Groups, Launch Template (t4g.nano ARM64 con Docker), Auto Scaling Group integrado a Target Group existente,
@@ -112,13 +112,13 @@ Parameters:
   # ==============================================================================
   AcmCertificateArn:
     Type: String
-    Default: arn:aws:acm:us-east-1:817697649850:certificate/23c30556-235c-42b8-ab0a-e253cc687eae
+    Default: arn:aws:acm:us-east-1:817697649850:certificate/6838ebac-f472-4802-a8b8-c1ca59d0dc20
     Description: "[OBLIGATORIO] ARN del Certificado SSL/TLS en ACM (us-east-1) para CloudFront."
 
   FrontendDomainName:
     Type: String
     Default: profarmed.com.mx
-    Description: Subdominio / CNAME para el Frontend React (ej. profarmed.com.mx o profarmed.com.mx).
+    Description: Subdominio / CNAME para el Frontend React (ej. profarmed.com.mx).
 
   ImgsDomainName:
     Type: String
@@ -135,22 +135,22 @@ Parameters:
   # ==============================================================================
   FrontendBucketName:
     Type: String
-    Default: ecommerce-profarmed-frontend
+    Default: profarmed-frontend
     Description: Nombre unico global del Bucket S3 para el Frontend React.
 
   ImgsBucketName:
     Type: String
-    Default: ecommerce-profarmed-imgs
+    Default: profarmed-imgs
     Description: Nombre unico global del Bucket S3 para Catalogo de Imagenes.
 
   PromosBucketName:
     Type: String
-    Default: ecommerce-profarmed-promos
+    Default: profarmed-promos
     Description: Nombre unico global del Bucket S3 para Promociones y Banners.
 
   DocsBucketName:
     Type: String
-    Default: ecommerce-profarmed-docs
+    Default: profarmed-docs
     Description: Nombre unico global del Bucket S3 Privado para Documentos.
 
   # ==============================================================================
