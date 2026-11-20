@@ -408,10 +408,12 @@ export default function SidebarDrawer({ isOpen, onClose }) {
                     )}
                   </button>
 
-                  <button className={`sidebar-drawer__item ${isCurrentPath('/') ? 'sidebar-drawer__item--active' : ''}`} onClick={() => handleNav('/')}>
-                    <FontAwesomeIcon icon={faHome} className="sidebar-drawer__icon" />
-                    <span>Portal Web Público</span>
-                  </button>
+                  {!isAuthenticated && (
+                    <button className={`sidebar-drawer__item ${isCurrentPath('/') ? 'sidebar-drawer__item--active' : ''}`} onClick={() => handleNav('/')}>
+                      <FontAwesomeIcon icon={faHome} className="sidebar-drawer__icon" />
+                      <span>Portal Web Público</span>
+                    </button>
+                  )}
                 </div>
               </>
             )}
