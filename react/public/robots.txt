@@ -19,8 +19,7 @@ Allow: /pwa-icons/
 Allow: /assets/
 Allow: /favicon.webp
 
-# Rutas privadas, autenticación y operación interna
-Disallow: /login
+# Rutas privadas, autenticación y operación interna (login usa meta noindex)
 Disallow: /products
 Disallow: /promos
 Disallow: /orders
