@@ -84,10 +84,12 @@ export default function Home() {
         <section className="pf-section pf-section--light">
           <div className="pf-section__container">
             <div className="pf-section__header">
-              <h2 className="pf-section__title">{productsBanner.title}</h2>
-              <div className="pf-divider">
-                <span className="pf-divider__primary" />
-                <span className="pf-divider__secondary" />
+              <div className="pf-section__title-wrap">
+                <h2 className="pf-section__title">{productsBanner.title}</h2>
+                <div className="pf-divider">
+                  <span className="pf-divider__primary" />
+                  <span className="pf-divider__secondary" />
+                </div>
               </div>
               <p className="pf-section__subtitle">{productsBanner.subtitle}</p>
               <div style={{ marginTop: 'var(--space-6)' }}>
@@ -108,15 +110,17 @@ export default function Home() {
         </section>
 
         {/* 3. Tus aliados en distribución */}
-        <section className="pf-section pf-section--dark-gradient">
+        <section className="pf-section pf-section--dark-gradient pf-section--allies">
           <div className="pf-section__container">
             <div className="pf-split">
               <div className="pf-split__body">
                 <div className="pf-section__header pf-section__header--left">
-                  <h2 className="pf-section__title">{allies.title}</h2>
-                  <div className="pf-divider pf-divider--left pf-divider--on-dark">
-                    <span className="pf-divider__primary" />
-                    <span className="pf-divider__secondary" />
+                  <div className="pf-section__title-wrap">
+                    <h2 className="pf-section__title">{allies.title}</h2>
+                    <div className="pf-divider pf-divider--left pf-divider--on-dark">
+                      <span className="pf-divider__primary" />
+                      <span className="pf-divider__secondary" />
+                    </div>
                   </div>
                 </div>
                 <p>{allies.description}</p>
@@ -153,10 +157,12 @@ export default function Home() {
         <section className="pf-section pf-section--green">
           <div className="pf-section__container">
             <div className="pf-section__header">
-              <h2 className="pf-section__title">{solutions.title}</h2>
-              <div className="pf-divider pf-divider--on-green">
-                <span className="pf-divider__primary" />
-                <span className="pf-divider__secondary" />
+              <div className="pf-section__title-wrap">
+                <h2 className="pf-section__title">{solutions.title}</h2>
+                <div className="pf-divider pf-divider--on-green">
+                  <span className="pf-divider__primary" />
+                  <span className="pf-divider__secondary" />
+                </div>
               </div>
             </div>
 
@@ -201,40 +207,53 @@ export default function Home() {
             <div className="pf-reviews">
               <div className="pf-reviews__visual">
                 {(reviews.items || []).map((rev, idx) => (
-                  <div key={idx} className="pf-reviews__row">
-                    {idx % 2 === 0 && (
-                      <div className="pf-reviews__avatar">
-                        {rev.avatarUrl && <img src={resolveBrandAsset(rev.avatarUrl)} alt={rev.name} loading="lazy" />}
+                  <div key={idx} className="pf-reviews__contents-group" style={{ display: 'contents' }}>
+                    {idx === 1 && (
+                      <div className="pf-reviews__row" aria-hidden="true">
+                        <span className="pf-reviews__dec-circle" />
+                        <span className="pf-reviews__dec-circle" />
+                        <span className="pf-reviews__dec-circle" />
+                        <span className="pf-reviews__dec-circle" />
                       </div>
                     )}
-                    <div className="pf-reviews__badge">
-                      <span>{rev.name}</span>
-                      <div className="pf-reviews__stars">
-                        {'★'.repeat(rev.rating || 5)}
+                    <div className="pf-reviews__row">
+                      {idx === 1 && <span className="pf-reviews__dec-circle" aria-hidden="true" />}
+                      {idx % 2 === 0 && (
+                        <div className="pf-reviews__avatar">
+                          {rev.avatarUrl && <img src={resolveBrandAsset(rev.avatarUrl)} alt={rev.name} loading="lazy" />}
+                        </div>
+                      )}
+                      <div className="pf-reviews__badge">
+                        <span>{rev.name}</span>
+                        <div className="pf-reviews__stars">
+                          {'★'.repeat(rev.rating || 5)}
+                        </div>
                       </div>
+                      {idx % 2 !== 0 && (
+                        <div className="pf-reviews__avatar">
+                          {rev.avatarUrl && <img src={resolveBrandAsset(rev.avatarUrl)} alt={rev.name} loading="lazy" />}
+                        </div>
+                      )}
                     </div>
-                    {idx % 2 !== 0 && (
-                      <div className="pf-reviews__avatar">
-                        {rev.avatarUrl && <img src={resolveBrandAsset(rev.avatarUrl)} alt={rev.name} loading="lazy" />}
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
 
               <div>
                 <div className="pf-section__header pf-section__header--left">
-                  <h2 className="pf-section__title">
-                    <span className="pf-reviews__number">{reviews.titleHighlight}</span>
-                    {reviews.titleRest}
-                  </h2>
-                  <div className="pf-divider pf-divider--left pf-divider--on-dark-rev">
-                    <span className="pf-divider__primary" />
-                    <span className="pf-divider__secondary" />
+                  <div className="pf-section__title-wrap">
+                    <h2 className="pf-section__title">
+                      <span className="pf-reviews__number">{reviews.titleHighlight}</span>
+                      {reviews.titleRest}
+                    </h2>
+                    <div className="pf-divider pf-divider--left pf-divider--on-dark-rev">
+                      <span className="pf-divider__primary" />
+                      <span className="pf-divider__secondary" />
+                    </div>
                   </div>
                   <p className="pf-section__subtitle">
                     {reviews.subtitlePrefix}
-                    <span className="pf-split__highlight">{reviews.subtitleHighlight}</span>
+                    <span className="pf-split__highlight pf-split__highlight--block">{reviews.subtitleHighlight}</span>
                   </p>
                   <div style={{ marginTop: 'var(--space-6)' }}>
                     {/^https?:\/\//i.test(reviews.ctaLink || '') ? (
@@ -270,10 +289,12 @@ export default function Home() {
           )}
           <div className="pf-section__container">
             <div className="pf-section__header">
-              <h2 className="pf-section__title">{ctaBanner.title}</h2>
-              <div className="pf-divider pf-divider--on-dark-rev">
-                <span className="pf-divider__primary" />
-                <span className="pf-divider__secondary" />
+              <div className="pf-section__title-wrap">
+                <h2 className="pf-section__title">{ctaBanner.title}</h2>
+                <div className="pf-divider pf-divider--on-dark-rev">
+                  <span className="pf-divider__primary" />
+                  <span className="pf-divider__secondary" />
+                </div>
               </div>
               <p className="pf-section__subtitle">{ctaBanner.subtitle}</p>
             </div>

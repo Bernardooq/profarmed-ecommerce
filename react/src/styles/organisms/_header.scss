@@ -63,13 +63,13 @@
             font-size: var(--text-2xl);
 
             img {
-                height: 44px;
+                height: 52px;
             }
         }
 
         @include desktop {
             img {
-                height: 52px;
+                height: 60px;
             }
         }
     }

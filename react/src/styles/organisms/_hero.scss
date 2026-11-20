@@ -14,6 +14,11 @@
     color: var(--color-text-white);
     overflow: hidden;
 
+    @include tablet {
+        height: auto;
+        aspect-ratio: 1440 / 800;
+    }
+
     &__bg-image {
         position: absolute;
         top: 0;
@@ -22,6 +27,10 @@
         height: 100%;
         background-size: cover;
         background-position: center;
+
+        @include tablet {
+            background-size: 100% 100%;
+        }
 
         &--inicio {
             background-image: url('../../images/inicio.webp');
@@ -55,9 +64,14 @@
         transform: translateX(-50%);
 
         @include tablet {
-            left: 52%;
-            bottom: 24%;
+            left: 48.5%;
+            bottom: 20%;
             transform: none;
+        }
+
+        @include desktop {
+            left: 48.5%;
+            bottom: 24%;
         }
     }
 

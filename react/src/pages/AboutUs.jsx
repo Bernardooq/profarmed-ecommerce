@@ -80,10 +80,12 @@ export default function AboutUs() {
         <section className="pf-section pf-section--light">
           <div className="pf-section__container">
             <div className="pf-section__header">
-              <h2 className="pf-section__title">{introBanner?.title}</h2>
-              <div className="pf-divider">
-                <span className="pf-divider__primary" />
-                <span className="pf-divider__secondary" />
+              <div className="pf-section__title-wrap">
+                <h2 className="pf-section__title">{introBanner?.title}</h2>
+                <div className="pf-divider">
+                  <span className="pf-divider__primary" />
+                  <span className="pf-divider__secondary" />
+                </div>
               </div>
               <p className="pf-section__subtitle">{introBanner?.subtitle}</p>
             </div>
@@ -95,12 +97,14 @@ export default function AboutUs() {
           <div className="pf-split pf-split--flush">
             <div className="pf-split__body pf-split__body--padded">
               <div className="pf-section__header pf-section__header--left">
-                <h2 className="pf-section__title">
-                  {activeTab === 'mission' ? mission.title : vision.title}
-                </h2>
-                <div className="pf-divider pf-divider--left pf-divider--on-dark">
-                  <span className="pf-divider__primary" />
-                  <span className="pf-divider__secondary" />
+                <div className="pf-section__title-wrap">
+                  <h2 className="pf-section__title">
+                    {activeTab === 'mission' ? mission.title : vision.title}
+                  </h2>
+                  <div className="pf-divider pf-divider--left pf-divider--on-dark">
+                    <span className="pf-divider__primary" />
+                    <span className="pf-divider__secondary" />
+                  </div>
                 </div>
               </div>
 
@@ -159,10 +163,12 @@ export default function AboutUs() {
         <section className="pf-section pf-section--green-to-navy">
           <div className="pf-section__container">
             <div className="pf-section__header" style={{ marginBottom: 0 }}>
-              <h2 className="pf-section__title">{valuesSection?.title}</h2>
-              <div className="pf-divider pf-divider--on-dark-rev">
-                <span className="pf-divider__primary" />
-                <span className="pf-divider__secondary" />
+              <div className="pf-section__title-wrap">
+                <h2 className="pf-section__title">{valuesSection?.title}</h2>
+                <div className="pf-divider pf-divider--on-dark-rev">
+                  <span className="pf-divider__primary" />
+                  <span className="pf-divider__secondary" />
+                </div>
               </div>
             </div>
           </div>
@@ -197,13 +203,15 @@ export default function AboutUs() {
           <div className="pf-split pf-split--flush-pills">
             <div className="pf-split__body pf-split__body--pills-left">
               <div className="pf-section__header pf-section__header--left">
-                <h2 className="pf-section__title">
-                  {whyChooseUs?.titlePrefix}
-                  <span className="pf-split__highlight">{whyChooseUs?.titleHighlight}</span>
-                </h2>
-                <div className="pf-divider pf-divider--left pf-divider--on-dark-rev">
-                  <span className="pf-divider__primary" />
-                  <span className="pf-divider__secondary" />
+                <div className="pf-section__title-wrap">
+                  <h2 className="pf-section__title">
+                    {whyChooseUs?.titlePrefix}
+                    <span className="pf-split__highlight">{whyChooseUs?.titleHighlight}</span>
+                  </h2>
+                  <div className="pf-divider pf-divider--left pf-divider--on-dark-rev">
+                    <span className="pf-divider__primary" />
+                    <span className="pf-divider__secondary" />
+                  </div>
                 </div>
               </div>
               <p>{whyChooseUs?.subtitle}</p>
@@ -237,10 +245,12 @@ export default function AboutUs() {
           )}
           <div className="pf-section__container">
             <div className="pf-section__header">
-              <h2 className="pf-section__title">{ctaBanner?.title}</h2>
-              <div className="pf-divider pf-divider--on-dark-rev">
-                <span className="pf-divider__primary" />
-                <span className="pf-divider__secondary" />
+              <div className="pf-section__title-wrap">
+                <h2 className="pf-section__title">{ctaBanner?.title}</h2>
+                <div className="pf-divider pf-divider--on-dark-rev">
+                  <span className="pf-divider__primary" />
+                  <span className="pf-divider__secondary" />
+                </div>
               </div>
               <p className="pf-section__subtitle">{ctaBanner?.subtitle}</p>
             </div>
