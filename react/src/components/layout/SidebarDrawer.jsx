@@ -7,12 +7,14 @@ import {
   faTimes, faHome, faBoxOpen, faTag, faShoppingBag,
   faStar, faUser, faKey, faHeadset, faSignOutAlt, faSignInAlt,
   faShieldAlt, faSun, faMoon, faCartShopping, faBullhorn,
-  faUsers, faUserTie, faBoxes, faChartLine, faTags, faFileAlt, faEnvelope
+  faUsers, faUserTie, faBoxes, faChartLine, faTags, faFileAlt, faEnvelope,
+  faClipboardList, faFileUpload, faFileDownload, faChevronDown, faChevronUp, faBolt
 } from '@fortawesome/free-solid-svg-icons';
 import useTheme from '../../hooks/useTheme';
 import ModalChangePassword from '../users/ModalChangePassword';
 import contactClientService from '../../services/contactClientService';
 import ticketService from '../../services/ticketService';
+import catalogService from '../../services/catalogService';
 import BRAND from '../../config/brand';
 import usePermissions from '../../hooks/usePermissions';
 import { PERMISSIONS } from '../../config/permissions';
@@ -29,6 +31,8 @@ export default function SidebarDrawer({ isOpen, onClose }) {
   const hasPromoAds = useHasPromoAds(isAuthenticated && isCustomer);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showOffersModal, setShowOffersModal] = useState(false);
+  const [captureOpen, setCaptureOpen] = useState(true);
+  const [exportingCatalog, setExportingCatalog] = useState(false);
   const [pendingContactCount, setPendingContactCount] = useState(0);
   const [pendingClientCount, setPendingClientCount] = useState(0);
   const [pendingTicketsCount, setPendingTicketsCount] = useState(0);
@@ -117,6 +121,17 @@ export default function SidebarDrawer({ isOpen, onClose }) {
       onClose();
     }
     navigate(path);
+  };
+
+  const handleExportCatalog = async () => {
+    try {
+      setExportingCatalog(true);
+      await catalogService.exportProducts();
+    } catch (err) {
+      console.error('Error al descargar catálogo Excel:', err);
+    } finally {
+      setExportingCatalog(false);
+    }
   };
 
   const handleBackdropClick = () => {
@@ -252,10 +267,49 @@ export default function SidebarDrawer({ isOpen, onClose }) {
                     </button>
                   )}
 
-                  <button className={`sidebar-drawer__item ${isCurrentPath('/products') ? 'sidebar-drawer__item--active' : ''}`} onClick={() => handleNav('/products')}>
-                    <FontAwesomeIcon icon={faBoxOpen} className="sidebar-drawer__icon" />
-                    <span>Catálogo de Productos</span>
-                  </button>
+                  {/* Desplegable: Captura de Pedidos */}
+                  <div className="sidebar-drawer__dropdown">
+                    <button
+                      type="button"
+                      className={`sidebar-drawer__item sidebar-drawer__dropdown-trigger ${captureOpen ? 'is-open' : ''}`}
+                      onClick={() => setCaptureOpen(prev => !prev)}
+                    >
+                      <FontAwesomeIcon icon={faClipboardList} className="sidebar-drawer__icon" />
+                      <span>Captura de Pedidos</span>
+                      <FontAwesomeIcon icon={captureOpen ? faChevronUp : faChevronDown} className="sidebar-drawer__chevron" />
+                    </button>
+
+                    {captureOpen && (
+                      <div className="sidebar-drawer__submenu">
+                        <button
+                          className={`sidebar-drawer__subitem ${isCurrentPath('/products') && !location.search.includes('sort=newest') ? 'sidebar-drawer__item--active' : ''}`}
+                          onClick={() => handleNav('/products')}
+                        >
+                          <FontAwesomeIcon icon={faBoxOpen} className="sidebar-drawer__icon" />
+                          <span>Catálogo de Productos</span>
+                        </button>
+
+                        <button
+                          className={`sidebar-drawer__subitem ${isCurrentPath('/cart') ? 'sidebar-drawer__item--active' : ''}`}
+                          onClick={() => handleNav('/cart')}
+                        >
+                          <FontAwesomeIcon icon={faFileUpload} className="sidebar-drawer__icon" />
+                          <span>Cargar Pedido con Excel</span>
+                        </button>
+
+                        {isCustomer && (
+                          <button
+                            className="sidebar-drawer__subitem"
+                            onClick={handleExportCatalog}
+                            disabled={exportingCatalog}
+                          >
+                            <FontAwesomeIcon icon={faFileDownload} className="sidebar-drawer__icon" />
+                            <span>{exportingCatalog ? 'Descargando...' : 'Descargar Catálogo Excel'}</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
                   <button className={`sidebar-drawer__item ${isCurrentPath('/cart') ? 'sidebar-drawer__item--active' : ''}`} onClick={() => handleNav('/cart')}>
                     <FontAwesomeIcon icon={faCartShopping} className="sidebar-drawer__icon" />
@@ -267,7 +321,15 @@ export default function SidebarDrawer({ isOpen, onClose }) {
 
                   <button className={`sidebar-drawer__item ${isCurrentPath('/orders') ? 'sidebar-drawer__item--active' : ''}`} onClick={() => handleNav('/orders')}>
                     <FontAwesomeIcon icon={faShoppingBag} className="sidebar-drawer__icon" />
-                    <span>Mis Pedidos</span>
+                    <span>Estatus de Pedidos</span>
+                  </button>
+
+                  <button
+                    className={`sidebar-drawer__item ${isCurrentPath('/products') && location.search.includes('sort=newest') ? 'sidebar-drawer__item--active' : ''}`}
+                    onClick={() => handleNav('/products?sort=newest')}
+                  >
+                    <FontAwesomeIcon icon={faBolt} className="sidebar-drawer__icon" />
+                    <span>Productos Nuevos</span>
                   </button>
 
                   <button className={`sidebar-drawer__item ${isCurrentPath('/favorites') ? 'sidebar-drawer__item--active' : ''}`} onClick={() => handleNav('/favorites')}>

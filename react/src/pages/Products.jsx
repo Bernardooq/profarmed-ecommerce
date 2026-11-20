@@ -68,10 +68,18 @@ export default function Products() {
   const [showModal, setShowModal] = useState(false);
   const [isColumnPickerOpen, setIsColumnPickerOpen] = useState(false);
 
+  const urlSort = searchParams.get('sort') || 'relevance';
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [sortOrder, setSortOrder] = useState('relevance');
+  const [sortOrder, setSortOrder] = useState(urlSort);
   const [page, setPage] = useState(0);
   const [lookaheadPages, setLookaheadPages] = useState(0);
+
+  const [prevUrlSort, setPrevUrlSort] = useState(urlSort);
+  if (urlSort !== prevUrlSort) {
+    setPrevUrlSort(urlSort);
+    setSortOrder(urlSort);
+    setPage(0);
+  }
 
   const [prevSearchQuery, setPrevSearchQuery] = useState(searchQuery);
   if (searchQuery !== prevSearchQuery) {
