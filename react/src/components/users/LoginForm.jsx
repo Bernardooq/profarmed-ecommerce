@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import authService from '../../services/authService';
 import promoAdService from '../../services/promoAdService';
+import BRAND from '../../config/brand';
+
+const TURNSTILE_SITE_KEY = BRAND.turnstileSiteKey;
 
 export default function LoginForm({ onViewChange }) {
   const { login } = useAuth();
@@ -35,6 +38,61 @@ export default function LoginForm({ onViewChange }) {
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [turnstileReady, setTurnstileReady] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const containerRef = useRef(null);
+  const widgetIdRef = useRef(null);
+
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY) return;
+    if (document.getElementById('turnstile-script')) {
+      if (window.turnstile) setTurnstileReady(true);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.id = 'turnstile-script';
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadLoginTurnstileCallback';
+    script.async = true;
+    script.defer = true;
+
+    window.onloadLoginTurnstileCallback = () => {
+      setTurnstileReady(true);
+    };
+
+    document.head.appendChild(script);
+
+    return () => {
+      delete window.onloadLoginTurnstileCallback;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (view === 'login' && TURNSTILE_SITE_KEY && turnstileReady && window.turnstile && containerRef.current && widgetIdRef.current === null) {
+      widgetIdRef.current = window.turnstile.render(containerRef.current, {
+        sitekey: TURNSTILE_SITE_KEY,
+        callback: (token) => { setTurnstileToken(token); },
+        'expired-callback': () => { setTurnstileToken(''); },
+        'error-callback': () => { setTurnstileToken(''); },
+        theme: 'dark',
+        size: 'flexible'
+      });
+    }
+
+    return () => {
+      if (widgetIdRef.current !== null && window.turnstile) {
+        window.turnstile.remove(widgetIdRef.current);
+        widgetIdRef.current = null;
+      }
+    };
+  }, [turnstileReady, view]);
+
+  const resetTurnstile = () => {
+    setTurnstileToken('');
+    if (widgetIdRef.current !== null && window.turnstile) {
+      window.turnstile.reset(widgetIdRef.current);
+    }
+  };
 
   // ============================================
   // MANEJADORES DE LOGIN
@@ -42,10 +100,16 @@ export default function LoginForm({ onViewChange }) {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (turnstileReady && !turnstileToken) {
+      setError('Por favor completa la verificación de seguridad.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const user = await login(username, password);
+      const user = await login(username, password, turnstileToken);
       if (user?.role === 'customer' || user?.user_type === 'customer') {
         try {
           const ads = await promoAdService.getActiveAds();
@@ -58,6 +122,7 @@ export default function LoginForm({ onViewChange }) {
       }
     } catch (err) {
       setError(err.message || 'Usuario o contraseña incorrectos');
+      resetTurnstile();
     } finally {
       setLoading(false);
     }
@@ -439,6 +504,8 @@ export default function LoginForm({ onViewChange }) {
           Olvidé contraseña
         </button>
       </div>
+
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '0.5rem 0' }} ref={containerRef}></div>
 
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--space-2)' }}>
         <button type="submit" className="btn btn--primary" disabled={loading} style={{ minWidth: '160px' }}>

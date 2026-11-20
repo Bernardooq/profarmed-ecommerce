@@ -64,8 +64,8 @@ def send_contact_email(
     db: Session = Depends(get_db)
 ):
     
-    # Validar Cloudflare Turnstile (comentado para demo local)
-    if False and TURNSTILE_SECRET_KEY:
+    # Validar Cloudflare Turnstile
+    if TURNSTILE_SECRET_KEY:
         captcha_token = request.headers.get("X-Turnstile-Token", "")
         
         if not captcha_token:

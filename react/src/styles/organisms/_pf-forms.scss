@@ -1,0 +1,254 @@
+@use '../tokens/breakpoints' as *;
+
+// ============================================
+// ORGANISM — PROFARMED CONTACT & GLASS FORMS
+// ============================================
+
+.pf-map-box {
+    max-width: 780px;
+    margin: 0 auto var(--space-10);
+    border-radius: 24px;
+    overflow: hidden;
+    background: var(--color-bg-muted);
+    box-shadow: var(--shadow-md);
+    height: 320px;
+
+    iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+    }
+}
+
+.pf-contact-grid {
+    max-width: 780px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5) var(--space-4);
+
+    @include tablet {
+        gap: var(--space-8) var(--space-12);
+    }
+}
+
+.pf-contact-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+
+    &__title {
+        font-size: var(--text-sm);
+        font-weight: var(--font-bold);
+        color: var(--color-text);
+        margin: 0;
+
+        @include tablet {
+            font-size: var(--text-lg);
+        }
+    }
+
+    &__row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        min-width: 0;
+
+        @include tablet {
+            gap: var(--space-3);
+        }
+    }
+
+    &__icon {
+        width: 30px;
+        height: 30px;
+        object-fit: contain;
+        flex-shrink: 0;
+
+        @include tablet {
+            width: 42px;
+            height: 42px;
+        }
+    }
+
+    &__text {
+        font-size: 0.72rem;
+        font-weight: var(--font-semibold);
+        color: var(--color-text);
+        line-height: 1.4;
+        margin: 0;
+        overflow-wrap: anywhere;
+
+        @include tablet {
+            font-size: var(--text-sm);
+            line-height: 1.45;
+        }
+    }
+}
+
+.pf-glass-form {
+    max-width: 760px;
+    margin: var(--space-8) auto 0;
+
+    &__grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--space-5);
+
+        @include tablet {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    &__field {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+
+        &--full {
+            grid-column: 1 / -1;
+        }
+    }
+
+    &__label {
+        font-size: var(--text-sm);
+        font-weight: var(--font-semibold);
+        color: var(--brand-white);
+        padding-left: var(--space-3);
+    }
+
+    &__input,
+    &__textarea {
+        width: 100%;
+        background: var(--brand-glass-input);
+        border: 2px solid rgba(255, 255, 255, 0.85);
+        color: var(--brand-white);
+        font-family: var(--font-family);
+        font-size: var(--text-base);
+        padding: 0.7rem 1.25rem;
+        outline: none;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+
+        &::placeholder {
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        &:focus {
+            background: var(--brand-glass-input-focus);
+            border-color: var(--brand-white);
+        }
+    }
+
+    &__input {
+        border-radius: 999px;
+    }
+
+    &__textarea {
+        border-radius: 24px;
+        resize: vertical;
+        min-height: 150px;
+    }
+
+    &__submit {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-3);
+        margin-top: var(--space-8);
+    }
+
+    &__sent-note {
+        margin: 0;
+        font-size: var(--text-sm);
+        font-weight: var(--font-semibold);
+        color: var(--brand-white);
+        text-align: center;
+        opacity: 0.95;
+    }
+
+    &__section-title {
+        font-size: var(--text-base);
+        font-weight: var(--font-bold);
+        color: var(--brand-green-light);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+        padding-bottom: var(--space-2);
+        margin: var(--space-4) 0 var(--space-2);
+    }
+
+    &__file-box {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        background: var(--brand-glass-input);
+        border: 2px solid rgba(255, 255, 255, 0.85);
+        border-radius: 999px;
+        padding: 0.45rem 0.75rem;
+        min-height: 46px;
+    }
+
+    &__file-btn {
+        background: var(--brand-green);
+        color: var(--brand-night);
+        border: none;
+        border-radius: 999px;
+        padding: 0.35rem 0.9rem;
+        font-size: var(--text-xs);
+        font-weight: var(--font-bold);
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+            background: var(--brand-green-light);
+        }
+    }
+
+    &__file-name {
+        flex: 1;
+        font-size: var(--text-xs);
+        color: rgba(255, 255, 255, 0.75);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        &--selected {
+            color: var(--brand-white);
+            font-weight: var(--font-semibold);
+        }
+    }
+
+    &__file-remove {
+        background: transparent;
+        border: none;
+        color: var(--brand-white);
+        cursor: pointer;
+        font-size: var(--text-sm);
+        padding: 0 0.35rem;
+        opacity: 0.8;
+
+        &:hover {
+            opacity: 1;
+            color: var(--brand-green-light);
+        }
+    }
+}
+
+.pf-glass-card {
+    background: var(--brand-glass-card);
+    border-radius: 28px;
+    padding: var(--space-8) var(--space-5);
+    max-width: 820px;
+    margin: var(--space-8) auto 0;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+
+    @include tablet {
+        padding: var(--space-10) var(--space-10);
+    }
+
+    .pf-glass-form {
+        margin-top: 0;
+        max-width: none;
+    }
+}

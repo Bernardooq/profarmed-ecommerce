@@ -99,8 +99,8 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
-    # Validar Turnstile CAPTCHA (comentado para demo local)
-    if False and TURNSTILE_SECRET_KEY:
+    # Validar Turnstile CAPTCHA
+    if TURNSTILE_SECRET_KEY:
         captcha_token = request.headers.get("X-Turnstile-Token", "")
         
         # Validar contra la API de Cloudflare con estrategia Fail-Open

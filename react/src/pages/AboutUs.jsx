@@ -65,13 +65,15 @@ export default function AboutUs() {
       {renderHeader()}
 
       <main className="page__content">
-        {/* 1. Hero con imagen por defecto */}
+        {/* 1. Hero con imagen */}
         <section className="hero">
           <div className="hero__bg-image hero__bg-image--nosotros" />
-          <div className="hero__content">
-            <h1 className="hero__title">{hero?.title}</h1>
-            <p className="hero__subtitle">{hero?.subtitle}</p>
-          </div>
+          {(hero?.title || hero?.subtitle) && (
+            <div className="hero__content">
+              {hero?.title && <h1 className="hero__title">{hero.title}</h1>}
+              {hero?.subtitle && <p className="hero__subtitle">{hero.subtitle}</p>}
+            </div>
+          )}
         </section>
 
         {/* 2. Intro: Proveedora farmacéutica médica */}
@@ -89,63 +91,66 @@ export default function AboutUs() {
         </section>
 
         {/* 3. Nuestra misión / Nuestra visión (Toggle interactivo) */}
-        <section className="pf-section pf-section--dark-gradient">
-          <div className="pf-section__container">
-            <div className="pf-split">
-              <div className="pf-split__body">
-                <div className="pf-section__header pf-section__header--left">
-                  <h2 className="pf-section__title">
-                    {activeTab === 'mission' ? mission.title : vision.title}
-                  </h2>
-                  <div className="pf-divider pf-divider--left pf-divider--on-dark">
-                    <span className="pf-divider__primary" />
-                    <span className="pf-divider__secondary" />
-                  </div>
-                </div>
-
-                {activeTab === 'mission' ? (
-                  <p>
-                    {mission.prefix}
-                    <strong>{mission.boldText}</strong>
-                    {mission.middle}
-                    <span className="pf-split__highlight">{mission.highlightText}</span>
-                    {mission.suffix}
-                  </p>
-                ) : (
-                  <p>{vision.text}</p>
-                )}
-
-                <div className="pf-toggle-pills">
-                  <button
-                    type="button"
-                    className={`pf-toggle-pills__btn${activeTab === 'mission' ? ' pf-toggle-pills__btn--active' : ''}`}
-                    onClick={() => setActiveTab('mission')}
-                  >
-                    {mission.buttonLabel || 'Misión'}
-                  </button>
-                  <button
-                    type="button"
-                    className={`pf-toggle-pills__btn${activeTab === 'vision' ? ' pf-toggle-pills__btn--active' : ''}`}
-                    onClick={() => setActiveTab('vision')}
-                  >
-                    {vision.buttonLabel || 'Visión'}
-                  </button>
+        <section className="pf-section pf-section--dark-gradient pf-section--flush-split">
+          <div className="pf-split pf-split--flush">
+            <div className="pf-split__body pf-split__body--padded">
+              <div className="pf-section__header pf-section__header--left">
+                <h2 className="pf-section__title">
+                  {activeTab === 'mission' ? mission.title : vision.title}
+                </h2>
+                <div className="pf-divider pf-divider--left pf-divider--on-dark">
+                  <span className="pf-divider__primary" />
+                  <span className="pf-divider__secondary" />
                 </div>
               </div>
 
-              <div className="pf-split__media">
-                {missionVision?.imageUrl ? (
+              {activeTab === 'mission' ? (
+                <p>
+                  {mission.prefix}
+                  <strong>{mission.boldText}</strong>
+                  {mission.middle}
+                  <span className="pf-split__highlight">{mission.highlightText}</span>
+                  {mission.suffix}
+                </p>
+              ) : (
+                <p>{vision.text}</p>
+              )}
+
+              <div className="pf-toggle-pills">
+                <button
+                  type="button"
+                  className={`pf-toggle-pills__btn${activeTab === 'mission' ? ' pf-toggle-pills__btn--active' : ''}`}
+                  onClick={() => setActiveTab('mission')}
+                >
+                  {mission.buttonLabel || 'Misión'}
+                </button>
+                <button
+                  type="button"
+                  className={`pf-toggle-pills__btn${activeTab === 'vision' ? ' pf-toggle-pills__btn--active' : ''}`}
+                  onClick={() => setActiveTab('vision')}
+                >
+                  {vision.buttonLabel || 'Visión'}
+                </button>
+              </div>
+            </div>
+
+            <div className="pf-split__media pf-split__media--flush">
+              {missionVision?.imageUrl ? (
+                <picture>
+                  {missionVision?.mobileImageUrl && (
+                    <source media="(max-width: 767px)" srcSet={resolveBrandAsset(missionVision.mobileImageUrl)} />
+                  )}
                   <img
-                    src={missionVision.imageUrl}
+                    src={resolveBrandAsset(missionVision.imageUrl)}
                     alt={activeTab === 'mission' ? mission.title : vision.title}
                     loading="lazy"
                   />
-                ) : (
-                  <div className="pf-split__pending">
-                    Espacio reservado para imagen de Misión / Visión
-                  </div>
-                )}
-              </div>
+                </picture>
+              ) : (
+                <div className="pf-split__pending">
+                  Espacio reservado para imagen de Misión / Visión
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -170,7 +175,7 @@ export default function AboutUs() {
                 <div key={idx} className="pf-mountain-card pf-mountain-card--split">
                   <div className="pf-mountain-card__photo">
                     {val.imageUrl ? (
-                      <img src={val.imageUrl} alt={val.title} loading="lazy" />
+                      <img src={resolveBrandAsset(val.imageUrl)} alt={val.title} loading="lazy" />
                     ) : (
                       <span className="pf-mountain-card__photo-pending">
                         Imagen pendiente ({val.title})
@@ -188,36 +193,34 @@ export default function AboutUs() {
         </section>
 
         {/* 5. ¿Por qué escogernos? */}
-        <section className="pf-section pf-section--night">
-          <div className="pf-section__container">
-            <div className="pf-split">
-              <div className="pf-split__body">
-                <div className="pf-section__header pf-section__header--left">
-                  <h2 className="pf-section__title">
-                    {whyChooseUs?.titlePrefix}
-                    <span className="pf-split__highlight">{whyChooseUs?.titleHighlight}</span>
-                  </h2>
-                  <div className="pf-divider pf-divider--left pf-divider--on-dark-rev">
-                    <span className="pf-divider__primary" />
-                    <span className="pf-divider__secondary" />
+        <section className="pf-section pf-section--night pf-section--flush-pills">
+          <div className="pf-split pf-split--flush-pills">
+            <div className="pf-split__body pf-split__body--pills-left">
+              <div className="pf-section__header pf-section__header--left">
+                <h2 className="pf-section__title">
+                  {whyChooseUs?.titlePrefix}
+                  <span className="pf-split__highlight">{whyChooseUs?.titleHighlight}</span>
+                </h2>
+                <div className="pf-divider pf-divider--left pf-divider--on-dark-rev">
+                  <span className="pf-divider__primary" />
+                  <span className="pf-divider__secondary" />
+                </div>
+              </div>
+              <p>{whyChooseUs?.subtitle}</p>
+            </div>
+
+            <div className="pf-feature-pills">
+              {(whyChooseUs?.items || []).map((item, idx) => (
+                <div key={idx} className="pf-feature-pill">
+                  <div className="pf-feature-pill__circle">
+                    {item.icon && <img src={item.icon} alt={item.title} loading="lazy" />}
+                  </div>
+                  <div className="pf-feature-pill__content">
+                    <h3>{item.title}</h3>
+                    <p>{item.text}</p>
                   </div>
                 </div>
-                <p>{whyChooseUs?.subtitle}</p>
-              </div>
-
-              <div className="pf-feature-pills">
-                {(whyChooseUs?.items || []).map((item, idx) => (
-                  <div key={idx} className="pf-feature-pill">
-                    <div className="pf-feature-pill__circle">
-                      {item.icon && <img src={item.icon} alt={item.title} loading="lazy" />}
-                    </div>
-                    <div className="pf-feature-pill__content">
-                      <h3>{item.title}</h3>
-                      <p>{item.text}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              ))}
             </div>
           </div>
         </section>

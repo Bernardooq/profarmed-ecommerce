@@ -21,6 +21,7 @@ import Footer from '../components/layout/Footer';
 import LoginForm from '../components/users/LoginForm';
 import SEO from '../components/common/SEO';
 import BRAND from '../config/brand';
+import { resolveBrandAsset } from '../utils/brandAssets';
 
 export default function Login() {
   const [currentView, setCurrentView] = useState('login');
@@ -49,6 +50,13 @@ export default function Login() {
         noindex={true} 
       />
       <main className="auth-layout">
+        <img
+          src={resolveBrandAsset('pildora-watermark.webp')}
+          alt=""
+          className="auth-layout__watermark"
+          aria-hidden="true"
+        />
+
         <Link to="/" className="auth-layout__back" aria-label="Volver al inicio" title="Volver al inicio">
           <FontAwesomeIcon icon={faArrowLeft} />
         </Link>

@@ -72,8 +72,9 @@ export default function Contact() {
   // EVENT HANDLERS
   // ============================================
 
-  // Cargar script de Turnstile (Desactivado en demo local)
-  /* useEffect(() => {
+  // Cargar script de Turnstile
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY) return;
     if (document.getElementById('turnstile-script')) {
       if (window.turnstile) setTurnstileReady(true);
       return;
@@ -94,17 +95,17 @@ export default function Contact() {
     return () => {
       delete window.onloadContactTurnstileCallback;
     };
-  }, []); */
+  }, []);
 
-  // Renderizar widget invisible de Turnstile (Desactivado en demo local)
-  /* useEffect(() => {
-    if (turnstileReady && window.turnstile && containerRef.current && widgetIdRef.current === null) {
+  // Renderizar widget de Turnstile
+  useEffect(() => {
+    if (TURNSTILE_SITE_KEY && turnstileReady && window.turnstile && containerRef.current && widgetIdRef.current === null) {
       widgetIdRef.current = window.turnstile.render(containerRef.current, {
         sitekey: TURNSTILE_SITE_KEY,
         callback: (token) => { setTurnstileToken(token); },
         'expired-callback': () => { setTurnstileToken(''); },
         'error-callback': () => { setTurnstileToken(''); },
-        theme: 'light',
+        theme: 'dark',
         size: 'flexible'
       });
     }
@@ -115,7 +116,7 @@ export default function Contact() {
         widgetIdRef.current = null;
       }
     };
-  }, [turnstileReady]); */
+  }, [turnstileReady]);
 
   // eslint-disable-next-line no-unused-vars
   const getTurnstileToken = async () => {
@@ -143,11 +144,10 @@ export default function Contact() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Turnstile desactivado para demo local
-    /* if (turnstileReady && !turnstileToken) {
+    if (turnstileReady && !turnstileToken) {
       alert('Por favor completa la verificación de seguridad');
       return;
-    } */
+    }
 
     setSending(true);
 
@@ -376,6 +376,8 @@ export default function Contact() {
                   />
                 </div>
               </div>
+
+              <div style={{ display: 'flex', justifyContent: 'center', margin: '1.25rem 0 0' }} ref={containerRef}></div>
 
               <div className="pf-glass-form__submit">
                 <button

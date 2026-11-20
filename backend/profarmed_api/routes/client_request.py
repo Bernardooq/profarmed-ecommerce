@@ -18,6 +18,7 @@ Sistema de Permisos:
 from fastapi import APIRouter, HTTPException, status, BackgroundTasks, Request, Depends, UploadFile, File, Form, Query
 from sqlalchemy.orm import Session
 import logging
+import httpx
 import boto3
 from botocore.exceptions import ClientError
 from datetime import datetime
@@ -86,9 +87,38 @@ def api_create_client_request(
     tax_cert_pdf: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    # Validar Cloudflare Turnstile (comentado para demo local)
-    if False and TURNSTILE_SECRET_KEY:
-        pass
+    # Validar Cloudflare Turnstile
+    if TURNSTILE_SECRET_KEY:
+        captcha_token = request.headers.get("X-Turnstile-Token", "")
+
+        if not captcha_token:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Verificación CAPTCHA requerida"
+            )
+
+        try:
+            response = httpx.post(
+                "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+                data={
+                    "secret": TURNSTILE_SECRET_KEY,
+                    "response": captcha_token
+                },
+                timeout=10.0
+            )
+
+            if response.status_code != 200:
+                logger.warning(f"Turnstile API falló en client_request con status {response.status_code}. Permitiendo envío por fallback.")
+            else:
+                result = response.json()
+                if not result.get("success"):
+                    logger.warning(f"Turnstile rechazó el token de client_request: {result.get('error-codes')}")
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Verificación CAPTCHA fallida. Intenta de nuevo."
+                    )
+        except httpx.RequestError as e:
+            logger.warning(f"Error de red contactando Turnstile en client_request: {str(e)}. Permitiendo envío por fallback.")
     
     files = {
         "id_pdf_key": id_pdf,

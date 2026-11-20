@@ -5,8 +5,8 @@
 // ============================================
 
 .header {
-    background: #0e101f;
-    color: #ffffff;
+    background: var(--brand-night);
+    color: var(--brand-white);
     box-shadow: 0 2px 12px rgba(14, 16, 31, 0.25);
     position: sticky;
     top: 0;
@@ -21,6 +21,11 @@
         padding: var(--space-3) 0;
         gap: var(--space-3);
         flex-wrap: wrap;
+
+        @include tablet {
+            padding: var(--space-4) 0;
+            gap: var(--space-4);
+        }
 
         &--public {
             @include tablet {
@@ -53,6 +58,14 @@
             width: auto;
             object-fit: contain;
         }
+
+        @include tablet {
+            font-size: var(--text-2xl);
+
+            img {
+                height: 44px;
+            }
+        }
     }
 
     &__nav {
@@ -75,6 +88,15 @@
             &.active {
                 color: #7bbe7b;
                 background: rgba(255, 255, 255, 0.08);
+            }
+        }
+
+        @include tablet {
+            gap: var(--space-4);
+
+            a {
+                font-size: var(--text-base);
+                padding: var(--space-2) var(--space-3);
             }
         }
 
@@ -115,8 +137,8 @@
     }
 
     &__cta {
-        background: #4eb070 !important;
-        color: #0e101f !important;
+        background: var(--brand-green) !important;
+        color: var(--brand-night) !important;
         border: none !important;
         border-radius: 999px !important;
         padding: 0.45rem 1.35rem !important;
@@ -124,8 +146,13 @@
         text-decoration: none;
         @include transition;
 
+        @include tablet {
+            font-size: var(--text-base) !important;
+            padding: 0.55rem 1.6rem !important;
+        }
+
         &:hover {
-            background: #7bbe7b !important;
+            background: var(--brand-green-light) !important;
             transform: translateY(-1px);
         }
     }

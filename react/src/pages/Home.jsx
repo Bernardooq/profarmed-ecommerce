@@ -132,7 +132,12 @@ export default function Home() {
 
               <div className="pf-split__media">
                 {allies.imageUrl ? (
-                  <img src={allies.imageUrl} alt={allies.title} loading="lazy" />
+                  <picture>
+                    {allies.mobileImageUrl && (
+                      <source media="(max-width: 767px)" srcSet={resolveBrandAsset(allies.mobileImageUrl)} />
+                    )}
+                    <img src={resolveBrandAsset(allies.imageUrl)} alt={allies.title} loading="lazy" />
+                  </picture>
                 ) : (
                   <div className="pf-split__pending">
                     Espacio reservado para imagen / SVG de distribución
@@ -198,7 +203,7 @@ export default function Home() {
                   <div key={idx} className="pf-reviews__row">
                     {idx % 2 === 0 && (
                       <div className="pf-reviews__avatar">
-                        {rev.avatarUrl && <img src={rev.avatarUrl} alt={rev.name} loading="lazy" />}
+                        {rev.avatarUrl && <img src={resolveBrandAsset(rev.avatarUrl)} alt={rev.name} loading="lazy" />}
                       </div>
                     )}
                     <div className="pf-reviews__badge">
@@ -209,7 +214,7 @@ export default function Home() {
                     </div>
                     {idx % 2 !== 0 && (
                       <div className="pf-reviews__avatar">
-                        {rev.avatarUrl && <img src={rev.avatarUrl} alt={rev.name} loading="lazy" />}
+                        {rev.avatarUrl && <img src={resolveBrandAsset(rev.avatarUrl)} alt={rev.name} loading="lazy" />}
                       </div>
                     )}
                   </div>

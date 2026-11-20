@@ -4,6 +4,23 @@
 // ============================================
 
 :root {
+    // --- Immutable Brand Tokens (never change with light/dark theme) ---
+    --brand-green: #4eb070;
+    --brand-green-hover: #3d9a5d;
+    --brand-green-light: #7bbe7b;
+    --brand-navy: #211f42;
+    --brand-night: #0e101f;
+    --brand-white: #ffffff;
+    --brand-glass-card: rgba(50, 49, 71, 0.70);
+    --brand-glass-input: rgba(217, 217, 217, 0.10);
+    --brand-glass-input-focus: rgba(217, 217, 217, 0.18);
+
+    // --- Brand Gradients (from Profarmed Visual Identity Manual) ---
+    --gradient-degradado-1: linear-gradient(135deg, var(--brand-navy) 11%, var(--brand-night) 100%);
+    --gradient-degradado-2: linear-gradient(180deg, var(--brand-night) 0%, var(--brand-navy) 61%, var(--brand-night) 100%);
+    --gradient-degradado-3: linear-gradient(90deg, var(--brand-green) 0%, var(--brand-navy) 100%);
+    --gradient-degradado-3-welcome: linear-gradient(135deg, var(--brand-green-light) 0%, var(--brand-green) 19%, var(--brand-navy) 91%);
+
     // --- Brand Profarmed ---
     --color-primary: #4eb070;          // Verde Profarmed
     --color-primary-hover: #3d9a5d;

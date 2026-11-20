@@ -10,10 +10,19 @@
     justify-content: center;
     min-height: 100vh;
     padding: var(--space-6);
-    background: linear-gradient(135deg, rgba(14, 16, 31, 0.72) 0%, rgba(33, 31, 66, 0.68) 100%), url('../../images/login.webp');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    background: var(--gradient-degradado-1);
+    overflow: hidden;
+
+    &__watermark {
+        position: absolute;
+        right: 4%;
+        bottom: 6%;
+        max-height: 360px;
+        opacity: 0.14;
+        pointer-events: none;
+        user-select: none;
+        z-index: 0;
+    }
 
     &__back {
         position: fixed;
@@ -22,8 +31,8 @@
         width: 46px;
         height: 46px;
         border-radius: 50%;
-        background: #4eb070;
-        color: #0e101f;
+        background: var(--brand-green);
+        color: var(--brand-night);
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -34,14 +43,16 @@
         transition: transform 0.2s ease, background-color 0.2s ease;
 
         &:hover {
-            background: #7bbe7b;
+            background: var(--brand-green-light);
             transform: scale(1.08);
         }
     }
 }
 
 .auth-card {
-    background: rgba(50, 49, 71, 0.70);
+    position: relative;
+    z-index: 1;
+    background: var(--brand-glass-card);
     border-radius: 28px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.40);
     padding: var(--space-10) var(--space-8);
@@ -50,7 +61,7 @@
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    color: #ffffff;
+    color: var(--brand-white);
 
     @media (max-width: 480px) {
         padding: var(--space-8) var(--space-6);
@@ -70,22 +81,22 @@
         h1 {
             font-size: var(--text-2xl);
             margin-top: var(--space-3);
-            color: #ffffff;
+            color: var(--brand-white);
         }
     }
 
     .form-group__label,
     .form-group--checkbox label {
-        color: #ffffff;
+        color: var(--brand-white);
         font-weight: var(--font-semibold);
         font-size: var(--text-sm);
     }
 
     .input {
-        background: rgba(217, 217, 217, 0.10);
+        background: var(--brand-glass-input);
         border: 2px solid rgba(255, 255, 255, 0.85);
         border-radius: 999px;
-        color: #ffffff;
+        color: var(--brand-white);
         padding: 0.7rem 1.25rem;
 
         &::placeholder {
@@ -93,22 +104,22 @@
         }
 
         &:focus {
-            background: rgba(217, 217, 217, 0.18);
-            border-color: #ffffff;
+            background: var(--brand-glass-input-focus);
+            border-color: var(--brand-white);
             box-shadow: none;
         }
     }
 
     .btn--primary {
-        background: #4eb070;
-        color: #0e101f;
+        background: var(--brand-green);
+        color: var(--brand-night);
         border: none;
         border-radius: 999px;
         font-weight: var(--font-bold);
         padding: 0.7rem 2rem;
 
         &:hover:not(:disabled) {
-            background: #7bbe7b;
+            background: var(--brand-green-light);
         }
     }
 

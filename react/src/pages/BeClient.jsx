@@ -111,8 +111,9 @@ export default function BeClient() {
     );
   };
 
-  // Cargar Turnstile (Desactivado en demo local)
-  /* useEffect(() => {
+  // Cargar Turnstile
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY) return;
     if (document.getElementById('turnstile-script')) {
       if (window.turnstile) setTurnstileReady(true);
       return;
@@ -133,17 +134,17 @@ export default function BeClient() {
     return () => {
       delete window.onloadBeClientTurnstileCallback;
     };
-  }, []); */
+  }, []);
 
-  // Inicializar Turnstile (Desactivado en demo local)
-  /* useEffect(() => {
-    if (turnstileReady && window.turnstile && containerRef.current && widgetIdRef.current === null) {
+  // Inicializar Turnstile
+  useEffect(() => {
+    if (!sent && TURNSTILE_SITE_KEY && turnstileReady && window.turnstile && containerRef.current && widgetIdRef.current === null) {
       widgetIdRef.current = window.turnstile.render(containerRef.current, {
         sitekey: TURNSTILE_SITE_KEY,
         callback: (token) => { setTurnstileToken(token); },
         'expired-callback': () => { setTurnstileToken(''); },
         'error-callback': () => { setTurnstileToken(''); },
-        theme: 'light',
+        theme: 'dark',
         size: 'flexible'
       });
     }
@@ -154,7 +155,7 @@ export default function BeClient() {
         widgetIdRef.current = null;
       }
     };
-  }, [turnstileReady]); */
+  }, [turnstileReady, sent]);
 
   const resetTurnstile = () => {
     setTurnstileToken('');
@@ -195,11 +196,10 @@ export default function BeClient() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Turnstile desactivado para demo local
-    /* if (turnstileReady && !turnstileToken) {
+    if (turnstileReady && !turnstileToken) {
       alert('Por favor completa la verificación de seguridad.');
       return;
-    } */
+    }
 
     if (!files.id_pdf || !files.sanitary_license_pdf || !files.proof_of_address_pdf || !files.tax_cert_pdf) {
       alert('Debes adjuntar los 4 documentos requeridos en formato PDF para enviar la solicitud.');
@@ -400,6 +400,8 @@ export default function BeClient() {
                   {renderFileField('proof_of_address_pdf', content.quieroSerCliente.form.labels.proofAddress)}
                   {renderFileField('tax_cert_pdf', content.quieroSerCliente.form.labels.taxCert)}
                 </div>
+
+                <div style={{ display: 'flex', justifyContent: 'center', margin: '1.5rem 0 0' }} ref={containerRef}></div>
 
                 <div className="pf-glass-form__submit">
                   <button

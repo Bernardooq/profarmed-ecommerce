@@ -14,7 +14,7 @@
     "themeColor": "#4eb070",
     "logoText": "Profarmed",
     "logoUrl": "/images/logo.png",
-    "turnstileSiteKey": "0x4AAAAAACozwagS-q-IOY-7",
+    "turnstileSiteKey": "0x4AAAAAAGJ24OB2-QaOAimm",
     "apiBaseUrl": "https://apiecommerce.profarmed.com.mx",
     "social": {
       "instagram": "https://www.instagram.com/profarmedmx/",
@@ -36,9 +36,10 @@
   },
   "inicio": {
     "hero": {
-      "title": "Profarmed",
-      "srOnly": " - Distribuidora Farmacéutica B2B",
-      "subtitle": "Tu socio en distribución farmacéutica en la Zona Metropolitana de Guadalajara"
+      "title": "",
+      "srOnly": "",
+      "subtitle": "",
+      "ctaText": "Ir al e-commerce"
     },
     "intro": "Somos una distribuidora farmacéutica B2B con sede en Guadalajara que atiende a farmacias independientes de la Zona Metropolitana.",
     "productsBanner": {
@@ -54,7 +55,8 @@
       "highlightText": "ayudarte a competir contra las grandes cadenas.",
       "ctaText": "¡Conócenos!",
       "ctaLink": "/about",
-      "imageUrl": ""
+      "imageUrl": "/images/brand/repartidor-web.webp",
+      "mobileImageUrl": "/images/brand/repartidor-cel.webp"
     },
     "solutions": {
       "title": "Soluciones para cada necesidad de suministro",
@@ -144,17 +146,17 @@
         {
           "name": "Karla Montes",
           "rating": 5,
-          "avatarUrl": ""
+          "avatarUrl": "/images/brand/review-karla.webp"
         },
         {
           "name": "Lulu Díaz",
           "rating": 5,
-          "avatarUrl": ""
+          "avatarUrl": "/images/brand/review-lulu.webp"
         },
         {
           "name": "Héctor Bracamontes",
           "rating": 5,
-          "avatarUrl": ""
+          "avatarUrl": "/images/brand/review-hector.webp"
         }
       ]
     },
@@ -170,15 +172,16 @@
   },
   "nosotros": {
     "hero": {
-      "title": "Quienes somos",
-      "subtitle": "Tu distribuidor y aliado farmacéutico"
+      "title": "",
+      "subtitle": ""
     },
     "introBanner": {
       "title": "Proveedora farmacéutica médica",
       "subtitle": "Somos una empresa especializada en la distribución de productos farmacéuticos, ofreciendo seguridad, confianza y experiencia en todo el país."
     },
     "missionVision": {
-      "imageUrl": "",
+      "imageUrl": "/images/brand/mision-vision-web.webp",
+      "mobileImageUrl": "/images/brand/mision-vision-cel.webp",
       "mission": {
         "buttonLabel": "Misión",
         "title": "Nuestra misión",
@@ -200,17 +203,17 @@
         {
           "title": "Compromiso",
           "text": "Ni usted ni sus clientes se quedan sin su medicamento.",
-          "imageUrl": ""
+          "imageUrl": "/images/brand/valor-respeto.webp"
         },
         {
           "title": "Responsabilidad",
           "text": "Puede confiar en quien le surte. Respondemos por cada pedido.",
-          "imageUrl": ""
+          "imageUrl": "/images/brand/valor-compromiso.webp"
         },
         {
           "title": "Respeto",
           "text": "Trato profesional y amable, con promesa de mejora continua.",
-          "imageUrl": ""
+          "imageUrl": "/images/brand/valor-responsabilidad.webp"
         }
       ]
     },
