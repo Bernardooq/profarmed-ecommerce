@@ -195,10 +195,12 @@ export default function Contact() {
         <section className="pf-section pf-section--light">
           <div className="pf-section__container">
             <div className="pf-section__header">
-              <h1 className="pf-section__title">{content.contacto.title}</h1>
-              <div className="pf-divider">
-                <span className="pf-divider__primary" />
-                <span className="pf-divider__secondary" />
+              <div className="pf-section__title-wrap">
+                <h1 className="pf-section__title">{content.contacto.title}</h1>
+                <div className="pf-divider">
+                  <span className="pf-divider__primary" />
+                  <span className="pf-divider__secondary" />
+                </div>
               </div>
             </div>
 

@@ -172,11 +172,13 @@ export default function Home() {
                   {item.icon && (
                     <img src={resolveBrandAsset(item.icon)} alt={item.title} className="pf-mountain-card__icon" loading="lazy" />
                   )}
-                  <div className="pf-divider pf-divider--sm pf-divider--on-green">
-                    <span className="pf-divider__primary" />
-                    <span className="pf-divider__secondary" />
+                  <div className="pf-mountain-card__title-wrap">
+                    <div className="pf-divider pf-divider--on-green">
+                      <span className="pf-divider__primary" />
+                      <span className="pf-divider__secondary" />
+                    </div>
+                    <h3 className="pf-mountain-card__title">{item.title}</h3>
                   </div>
-                  <h3 className="pf-mountain-card__title">{item.title}</h3>
                   {(item.paragraphs || []).map((p, pIdx) => (
                     <p key={pIdx}>{p}</p>
                   ))}

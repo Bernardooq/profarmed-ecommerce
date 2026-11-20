@@ -294,10 +294,12 @@ export default function BeClient() {
         <section className="pf-section pf-section--degradado-2">
           <div className="pf-section__container">
             <div className="pf-section__header">
-              <h1 className="pf-section__title">{content.quieroSerCliente.title}</h1>
-              <div className="pf-divider pf-divider--on-dark">
-                <span className="pf-divider__primary" />
-                <span className="pf-divider__secondary" />
+              <div className="pf-section__title-wrap">
+                <h1 className="pf-section__title">{content.quieroSerCliente.title}</h1>
+                <div className="pf-divider pf-divider--on-dark">
+                  <span className="pf-divider__primary" />
+                  <span className="pf-divider__secondary" />
+                </div>
               </div>
               <p className="pf-section__subtitle">{content.quieroSerCliente.subtitle}</p>
             </div>
