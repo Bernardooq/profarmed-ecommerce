@@ -66,6 +66,12 @@
                 height: 44px;
             }
         }
+
+        @include desktop {
+            img {
+                height: 52px;
+            }
+        }
     }
 
     &__nav {
@@ -88,6 +94,15 @@
             &.active {
                 color: #7bbe7b;
                 background: rgba(255, 255, 255, 0.08);
+            }
+        }
+
+        @include desktop {
+            gap: var(--space-5);
+
+            a {
+                font-size: var(--text-lg);
+                padding: var(--space-2) var(--space-3);
             }
         }
 
@@ -149,6 +164,11 @@
         @include tablet {
             font-size: var(--text-base) !important;
             padding: 0.55rem 1.6rem !important;
+        }
+
+        @include desktop {
+            font-size: var(--text-base) !important;
+            padding: 0.65rem 1.85rem !important;
         }
 
         &:hover {
