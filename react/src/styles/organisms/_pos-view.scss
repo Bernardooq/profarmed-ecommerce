@@ -180,14 +180,58 @@
 
 .pos-content {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: 1fr;
   gap: var(--space-4, 16px);
   align-items: start;
   width: 100%;
   max-width: 100%;
 
+  &--cart-open {
+    grid-template-columns: 1fr 340px;
+
+    @media (max-width: 1024px) {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+.pos-cart-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+
+  &__total {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: var(--font-bold, 700);
+  }
+}
+
+.pos-cart-backdrop {
+  display: none;
+
   @media (max-width: 1024px) {
-    grid-template-columns: 1fr;
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 1040;
+  }
+}
+
+@keyframes posCartSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
@@ -292,15 +336,67 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  animation: posCartSlideIn 0.2s ease;
+
+  @media (max-width: 1024px) {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100dvh;
+    width: min(370px, 92vw);
+    max-width: 92vw;
+    z-index: 1050;
+    border-radius: var(--radius-xl, 12px) 0 0 var(--radius-xl, 12px);
+    box-shadow: -8px 0 30px rgba(0, 0, 0, 0.22);
+  }
 
   .pos-side-cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
     border-bottom: var(--border-width, 1px) solid var(--color-border);
     padding-bottom: var(--space-2, 8px);
+
+    h4 {
+      margin: 0;
+      font-size: var(--text-base, 15px);
+    }
+
+    &__actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  }
+
+  .pos-side-cart-close {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-md, 6px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    &:hover {
+      background: var(--color-bg-subtle);
+      color: var(--color-text);
+    }
   }
 
   .pos-side-cart-body {
     max-height: 380px;
     overflow-y: auto;
+
+    @media (max-width: 1024px) {
+      flex: 1;
+      max-height: none;
+    }
 
     .cart-empty-state {
       text-align: center;

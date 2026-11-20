@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faSearch, faSlidersH, faShoppingCart, faPlus, faMinus, 
   faCheck, faTrash, faArrowRight, faDownload, faBoxes, faBarcode, faBroom,
-  faExclamationTriangle, faCheckCircle
+  faExclamationTriangle, faCheckCircle, faTimes, faChevronLeft, faChevronRight
 } from '@fortawesome/free-solid-svg-icons';
 import { useCart } from '../../context/CartContext';
 import { useNavigate } from 'react-router-dom';
@@ -32,6 +32,7 @@ export default function PosCatalogView({
   const [localSearch, setLocalSearch] = useState(searchQuery || '');
   const [clearingCart, setClearingCart] = useState(false);
   const [toast, setToast] = useState(null);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const showToast = (message, isWarning = false) => {
     setToast({ message, isWarning });
@@ -216,11 +217,25 @@ export default function PosCatalogView({
             <FontAwesomeIcon icon={faSlidersH} style={{ marginRight: '6px' }} />
             Columnas
           </button>
+
+          <button
+            type="button"
+            className={`btn btn--sm pos-cart-toggle ${isCartOpen ? 'btn--primary' : 'btn--secondary'}`}
+            onClick={() => setIsCartOpen(prev => !prev)}
+            title={isCartOpen ? 'Ocultar carrito lateral' : 'Mostrar carrito lateral'}
+          >
+            <FontAwesomeIcon icon={faShoppingCart} />
+            <span>Carrito ({cartItems.length})</span>
+            {cartItems.length > 0 && !isCartOpen && (
+              <span className="pos-cart-toggle__total">{formatCurrency(activeTotal)}</span>
+            )}
+            <FontAwesomeIcon icon={isCartOpen ? faChevronRight : faChevronLeft} size="xs" />
+          </button>
         </div>
       </div>
 
-      {/* ÁREA PRINCIPAL: DIVIDIDA EN TABLA 75% + CARRITO LATERAL 25% */}
-      <div className="pos-content">
+      {/* ÁREA PRINCIPAL: TABLA 100% O DIVIDIDA CON CARRITO LATERAL */}
+      <div className={`pos-content ${isCartOpen ? 'pos-content--cart-open' : ''}`}>
         {/* TABLA DE PRODUCTOS (REUTILIZA data-table NATIVO) */}
         <div className="pos-table-wrapper data-table">
           <table className="pos-table">
@@ -429,28 +444,42 @@ export default function PosCatalogView({
           </table>
         </div>
 
-        {/* CARRITO LATERAL EN TIEMPO REAL */}
-        <div className="pos-side-cart">
-          <div className="pos-side-cart-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h4 style={{ margin: 0 }}>
-              <FontAwesomeIcon icon={faShoppingCart} style={{ marginRight: '8px', color: 'var(--color-primary)' }} />
-              Carrito ({cartItems.length})
-            </h4>
+        {/* CARRITO LATERAL COLAPSABLE / DRAWER RESPONSIVE */}
+        {isCartOpen && (
+          <>
+            <div className="pos-cart-backdrop" onClick={() => setIsCartOpen(false)} />
+            <div className="pos-side-cart">
+              <div className="pos-side-cart-header">
+                <h4>
+                  <FontAwesomeIcon icon={faShoppingCart} style={{ marginRight: '8px', color: 'var(--color-primary)' }} />
+                  Carrito ({cartItems.length})
+                </h4>
 
-            {cartItems.length > 0 && (
-              <button 
-                type="button"
-                className="btn btn--ghost btn--xs text-danger"
-                style={{ fontSize: '11px', padding: '2px 6px' }}
-                onClick={handleClearCart}
-                disabled={clearingCart}
-                title="Vaciar carrito completo"
-              >
-                <FontAwesomeIcon icon={faBroom} style={{ marginRight: '4px' }} />
-                Vaciar
-              </button>
-            )}
-          </div>
+                <div className="pos-side-cart-header__actions">
+                  {cartItems.length > 0 && (
+                    <button 
+                      type="button"
+                      className="btn btn--ghost btn--xs text-danger"
+                      style={{ fontSize: '11px', padding: '2px 6px' }}
+                      onClick={handleClearCart}
+                      disabled={clearingCart}
+                      title="Vaciar carrito completo"
+                    >
+                      <FontAwesomeIcon icon={faBroom} style={{ marginRight: '4px' }} />
+                      Vaciar
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="pos-side-cart-close"
+                    onClick={() => setIsCartOpen(false)}
+                    title="Ocultar carrito"
+                    aria-label="Ocultar carrito"
+                  >
+                    <FontAwesomeIcon icon={faTimes} />
+                  </button>
+                </div>
+              </div>
 
           <div className="pos-side-cart-body">
             {cartItems.length === 0 ? (
@@ -525,7 +554,9 @@ export default function PosCatalogView({
               </button>
             </div>
           )}
-        </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
