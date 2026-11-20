@@ -9,6 +9,58 @@ import BRAND from '../config/brand';
 
 const DEFAULT_LOGO_URL = `${BRAND.domain}${BRAND.logoUrl || '/pwa-icons/icon-512x512.png'}`;
 
+export const PHARMA_KNOWS_ABOUT = [
+  'Distribución de medicamentos',
+  'Distribuidora de medicinas',
+  'Medicamentos al mayoreo',
+  'Medicamentos genéricos',
+  'Medicamentos de patente',
+  'Fármacos y especialidades farmacéuticas',
+  'Insumos médicos y hospitalarios',
+  'Material de curación',
+  'Productos OTC y cuidado de la salud',
+  'Suplementos y vitaminas',
+  'Abastecimiento para farmacias, clínicas y hospitales',
+  'Mayorista farmacéutico en México',
+  'Catálogo B2B de medicamentos',
+  'Pedidos farmacéuticos en línea',
+];
+
+export const PHARMA_SEO_KEYWORDS = [
+  BRAND.name,
+  `${BRAND.name} medicamentos`,
+  `${BRAND.name} farmacéutica`,
+  'distribuidor de medicinas',
+  'distribuidora de medicamentos',
+  'medicamentos al mayoreo',
+  'medicinas al mayoreo',
+  'venta de medicamentos B2B',
+  'medicamentos genéricos',
+  'medicamentos de patente',
+  'mayorista farmacéutico',
+  'proveedor de farmacias',
+  'insumos médicos',
+  'material de curación',
+  'productos farmacéuticos',
+  'fármacos México',
+  'distribuidora farmacéutica Guadalajara',
+  'abastecimiento de farmacias y clínicas',
+].join(', ');
+
+const RICH_PHARMA_DESCRIPTION = `${BRAND.shortDescription} Distribuidora mayorista de medicinas, medicamentos genéricos y de patente, fármacos, insumos médicos, material de curación y productos farmacéuticos B2B para farmacias, clínicas y hospitales en México.`;
+
+const BASE_ADDRESS = {
+  '@type': 'PostalAddress',
+  ...(BRAND.address ? { streetAddress: BRAND.address } : {}),
+  addressCountry: 'MX',
+};
+
+const SERVICE_AREAS = [
+  { '@type': 'Country', name: 'México' },
+  { '@type': 'AdministrativeArea', name: 'Jalisco' },
+  { '@type': 'City', name: 'Guadalajara' },
+];
+
 function resolvePublicProductImage(product) {
   const raw = product?.image_url;
   if (raw && /^https?:\/\//i.test(raw)) {
@@ -22,17 +74,32 @@ function resolvePublicProductImage(product) {
 // Schema de la Organización (usar en Home y About)
 export const organizationSchema = {
   '@context': 'https://schema.org',
-  '@type': 'Organization',
+  '@type': ['Organization', 'MedicalBusiness', 'WholesaleStore'],
   name: BRAND.name,
   legalName: BRAND.legalName,
+  alternateName: [
+    `${BRAND.name} Farmacéutica`,
+    `${BRAND.name} Medicamentos`,
+    `${BRAND.name} Distribuidora de Medicinas`,
+    `${BRAND.name} México`,
+  ],
   url: BRAND.domain,
   logo: DEFAULT_LOGO_URL,
-  description: BRAND.shortDescription,
+  description: RICH_PHARMA_DESCRIPTION,
   email: BRAND.contactEmail,
-  address: {
-    '@type': 'PostalAddress',
-    addressCountry: 'MX',
+  knowsAbout: PHARMA_KNOWS_ABOUT,
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: `Catálogo de Medicamentos e Insumos Médicos - ${BRAND.name}`,
+    itemListElement: [
+      { '@type': 'OfferCatalog', name: 'Medicamentos Genéricos al Mayoreo' },
+      { '@type': 'OfferCatalog', name: 'Medicamentos de Patente y Alta Especialidad' },
+      { '@type': 'OfferCatalog', name: 'Material de Curación e Insumos Médicos' },
+      { '@type': 'OfferCatalog', name: 'Productos OTC, Vitaminas y Cuidado Personal' },
+    ],
   },
+  address: BASE_ADDRESS,
+  areaServed: SERVICE_AREAS,
   contactPoint: {
     '@type': 'ContactPoint',
     telephone: BRAND.phone ? `+52-${BRAND.phone}` : undefined,
@@ -73,25 +140,21 @@ export const websiteSchema = {
   },
 };
 
-// Schema de LocalBusiness (usar en Contact)
+// Schema de LocalBusiness (usar en Home y Contact)
 export const localBusinessSchema = {
   '@context': 'https://schema.org',
-  '@type': 'WholesaleStore',
+  '@type': ['WholesaleStore', 'MedicalBusiness'],
   name: BRAND.name,
+  description: RICH_PHARMA_DESCRIPTION,
   image: DEFAULT_LOGO_URL,
   '@id': BRAND.domain,
   url: BRAND.domain,
   email: BRAND.contactEmail,
   telephone: BRAND.phone ? `+52-${BRAND.phone}` : undefined,
   priceRange: '$$',
-  address: {
-    '@type': 'PostalAddress',
-    addressCountry: 'MX',
-  },
-  areaServed: {
-    '@type': 'Country',
-    name: 'MX',
-  },
+  knowsAbout: PHARMA_KNOWS_ABOUT,
+  address: BASE_ADDRESS,
+  areaServed: SERVICE_AREAS,
 };
 
 // Schema de Producto individual para Google Rich Results (/catalogo/producto/:productId)

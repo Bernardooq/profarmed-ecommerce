@@ -22,7 +22,7 @@ import Footer from '../components/layout/Footer';
 import Hero from '../components/hero/Hero';
 import Labs from '../components/common/Labs';
 import SEO from '../components/common/SEO';
-import { organizationSchema, websiteSchema } from '../utils/schemas';
+import { organizationSchema, localBusinessSchema, websiteSchema, PHARMA_SEO_KEYWORDS } from '../utils/schemas';
 import BRAND from '../config/brand';
 import content from '../config/content.json';
 import { resolveBrandAsset } from '../utils/brandAssets';
@@ -45,7 +45,7 @@ export default function Home() {
 
   const combinedSchema = {
     "@context": "https://schema.org",
-    "@graph": [organizationSchema, websiteSchema]
+    "@graph": [organizationSchema, localBusinessSchema, websiteSchema]
   };
 
   const inicio = content?.inicio || {};
@@ -68,6 +68,7 @@ export default function Home() {
       <SEO
         title={BRAND.getTitle()}
         description={inicio.intro || BRAND.shortDescription}
+        keywords={PHARMA_SEO_KEYWORDS}
         canonical={BRAND.getCanonical('/')}
         ogType="website"
         schema={combinedSchema}
