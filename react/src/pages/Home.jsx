@@ -206,37 +206,53 @@ export default function Home() {
           <div className="pf-section__container">
             <div className="pf-reviews">
               <div className="pf-reviews__visual">
-                {(reviews.items || []).map((rev, idx) => (
-                  <div key={idx} className="pf-reviews__contents-group" style={{ display: 'contents' }}>
-                    {idx === 1 && (
-                      <div className="pf-reviews__row" aria-hidden="true">
-                        <span className="pf-reviews__dec-circle" />
-                        <span className="pf-reviews__dec-circle" />
-                        <span className="pf-reviews__dec-circle" />
-                        <span className="pf-reviews__dec-circle" />
+                {(reviews.items || []).map((rev, idx) => {
+                  const avatar = (
+                    <div className="pf-reviews__avatar">
+                      {rev.avatarUrl && <img src={resolveBrandAsset(rev.avatarUrl)} alt={rev.name} loading="lazy" />}
+                    </div>
+                  );
+                  const badge = (
+                    <div className={`pf-reviews__badge ${idx === 1 ? 'pf-reviews__badge--span2' : 'pf-reviews__badge--span3'}`}>
+                      <span>{rev.name}</span>
+                      <div className="pf-reviews__stars">
+                        {'★'.repeat(rev.rating || 5)}
                       </div>
-                    )}
-                    <div className="pf-reviews__row">
-                      {idx === 1 && <span className="pf-reviews__dec-circle" aria-hidden="true" />}
-                      {idx % 2 === 0 && (
-                        <div className="pf-reviews__avatar">
-                          {rev.avatarUrl && <img src={resolveBrandAsset(rev.avatarUrl)} alt={rev.name} loading="lazy" />}
-                        </div>
+                    </div>
+                  );
+
+                  return (
+                    <div key={idx} style={{ display: 'contents' }}>
+                      {idx === 1 && (
+                        <>
+                          <span className="pf-reviews__dec-circle" aria-hidden="true" />
+                          <span className="pf-reviews__dec-circle" aria-hidden="true" />
+                          <span className="pf-reviews__dec-circle" aria-hidden="true" />
+                          <span className="pf-reviews__dec-circle" aria-hidden="true" />
+                        </>
                       )}
-                      <div className="pf-reviews__badge">
-                        <span>{rev.name}</span>
-                        <div className="pf-reviews__stars">
-                          {'★'.repeat(rev.rating || 5)}
-                        </div>
-                      </div>
-                      {idx % 2 !== 0 && (
-                        <div className="pf-reviews__avatar">
-                          {rev.avatarUrl && <img src={resolveBrandAsset(rev.avatarUrl)} alt={rev.name} loading="lazy" />}
-                        </div>
+                      {idx === 0 && (
+                        <>
+                          {avatar}
+                          {badge}
+                        </>
+                      )}
+                      {idx === 1 && (
+                        <>
+                          <span className="pf-reviews__dec-circle" aria-hidden="true" />
+                          {avatar}
+                          {badge}
+                        </>
+                      )}
+                      {idx >= 2 && (
+                        <>
+                          {badge}
+                          {avatar}
+                        </>
                       )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div>

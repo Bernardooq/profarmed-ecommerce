@@ -298,37 +298,35 @@
     }
 
     &__visual {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-4);
+        display: grid;
+        grid-template-columns: repeat(4, 62px);
+        gap: var(--space-3);
         align-items: center;
-    }
-
-    &__row {
-        display: flex;
-        align-items: center;
-        gap: var(--space-4);
-        flex-wrap: wrap;
         justify-content: center;
+
+        @include tablet {
+            grid-template-columns: repeat(4, 78px);
+            gap: var(--space-3);
+        }
     }
 
     &__dec-circle {
-        width: 76px;
-        height: 76px;
+        width: 62px;
+        height: 62px;
         border-radius: 50%;
         background: var(--brand-navy);
         flex-shrink: 0;
-        opacity: 0.9;
+        opacity: 0.92;
 
-        @include max-tablet {
-            width: 52px;
-            height: 52px;
+        @include tablet {
+            width: 78px;
+            height: 78px;
         }
     }
 
     &__avatar {
-        width: 76px;
-        height: 76px;
+        width: 62px;
+        height: 62px;
         border-radius: 50%;
         background: var(--brand-navy);
         overflow: hidden;
@@ -336,6 +334,11 @@
         display: flex;
         align-items: center;
         justify-content: center;
+
+        @include tablet {
+            width: 78px;
+            height: 78px;
+        }
 
         img {
             width: 100%;
@@ -348,16 +351,37 @@
         background: var(--brand-green);
         color: var(--brand-night);
         border-radius: 999px;
-        padding: var(--space-4) var(--space-8);
+        height: 62px;
+        padding: 0 var(--space-4);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         text-align: center;
         font-weight: var(--font-bold);
-        min-width: 210px;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+
+        @include tablet {
+            height: 78px;
+            padding: 0 var(--space-6);
+        }
+
+        &--span2 {
+            grid-column: span 2;
+        }
+
+        &--span3 {
+            grid-column: span 3;
+        }
 
         span {
             display: block;
-            font-size: var(--text-base);
+            font-size: var(--text-sm);
             margin-bottom: 2px;
+
+            @include tablet {
+                font-size: var(--text-base);
+            }
         }
     }
 
