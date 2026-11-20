@@ -6,17 +6,17 @@
 
 .pf-mountains-grid {
     display: grid;
-    grid-template-columns: 1fr 1.12fr 1fr;
-    gap: 0.35rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
     align-items: center;
     justify-items: center;
     margin-top: var(--space-8);
 
     @include tablet {
-        max-width: 920px;
+        max-width: 960px;
         margin-left: auto;
         margin-right: auto;
-        gap: 0.65rem;
+        gap: var(--space-6);
         margin-top: var(--space-10);
     }
 }
@@ -97,40 +97,15 @@
     overflow: hidden;
     justify-content: flex-start;
     width: 100%;
-    height: 275px;
-    min-height: 275px;
+    height: 290px;
+    min-height: 290px;
     box-shadow: 0 12px 30px rgba(14, 16, 31, 0.14);
-
-    &:nth-child(2) {
-        height: 320px;
-        min-height: 320px;
-        z-index: 2;
-        box-shadow: 0 16px 38px rgba(14, 16, 31, 0.2);
-    }
 
     @include tablet {
         padding: 0;
-        max-width: 280px;
-        height: 455px;
-        min-height: 455px;
-
-        &:nth-child(2) {
-            max-width: 318px;
-            height: 545px;
-            min-height: 545px;
-
-            .pf-mountain-card__body {
-                padding: var(--space-12) var(--space-8) var(--space-10);
-
-                .pf-mountain-card__title {
-                    font-size: 1.68rem;
-                }
-
-                p {
-                    max-width: 235px;
-                }
-            }
-        }
+        max-width: 295px;
+        height: 470px;
+        min-height: 470px;
     }
 
     .pf-mountain-card__photo {
@@ -169,28 +144,28 @@
         width: 100%;
         height: 50%;
         flex: 0 0 50%;
-        padding: 1rem 0.6rem 1.25rem;
+        padding: 0.85rem 0.65rem 1.15rem;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
 
         @include tablet {
-            padding: var(--space-10) var(--space-7) var(--space-8);
+            padding: var(--space-10) var(--space-6) var(--space-8);
 
             .pf-mountain-card__title {
-                font-size: 1.52rem;
-                font-weight: var(--font-extrabold);
+                font-size: 1.5rem;
+                font-weight: var(--font-black);
                 margin-top: 0;
-                margin-bottom: var(--space-3);
+                margin-bottom: var(--space-4);
             }
 
             p {
-                max-width: 205px;
-                font-size: 0.98rem;
+                max-width: 215px;
+                font-size: var(--text-base);
                 font-weight: var(--font-semibold);
                 line-height: 1.45;
-                margin-top: var(--space-1);
+                margin-top: 0;
             }
         }
     }
