@@ -15,6 +15,7 @@ import ModalChangePassword from '../users/ModalChangePassword';
 import contactClientService from '../../services/contactClientService';
 import ticketService from '../../services/ticketService';
 import catalogService from '../../services/catalogService';
+import { ExcelImportGuideTables, EXCEL_IMPORT_GUIDE_ITEMS } from '../common/ExcelImportGuideContent';
 import BRAND from '../../config/brand';
 import usePermissions from '../../hooks/usePermissions';
 import { PERMISSIONS } from '../../config/permissions';
@@ -34,6 +35,8 @@ export default function SidebarDrawer({ isOpen, onClose }) {
   const [captureOpen, setCaptureOpen] = useState(true);
   const [exportingCatalog, setExportingCatalog] = useState(false);
   const [importingExcel, setImportingExcel] = useState(false);
+  const [showImportConfirmModal, setShowImportConfirmModal] = useState(false);
+  const [showExportConfirmModal, setShowExportConfirmModal] = useState(false);
   const excelInputRef = useRef(null);
   const [pendingContactCount, setPendingContactCount] = useState(0);
   const [pendingClientCount, setPendingClientCount] = useState(0);
@@ -141,6 +144,11 @@ export default function SidebarDrawer({ isOpen, onClose }) {
       handleNav('/login');
       return;
     }
+    setShowImportConfirmModal(true);
+  };
+
+  const handleConfirmImportPicker = () => {
+    setShowImportConfirmModal(false);
     excelInputRef.current?.click();
   };
 
@@ -340,8 +348,9 @@ export default function SidebarDrawer({ isOpen, onClose }) {
 
                         {isCustomer && (
                           <button
+                            type="button"
                             className="sidebar-drawer__subitem"
-                            onClick={handleExportCatalog}
+                            onClick={() => setShowExportConfirmModal(true)}
                             disabled={exportingCatalog}
                           >
                             <FontAwesomeIcon icon={faFileDownload} className="sidebar-drawer__icon" />
@@ -462,6 +471,106 @@ export default function SidebarDrawer({ isOpen, onClose }) {
         accept=".xlsx, .xls"
         onChange={handleSidebarFileChange}
       />
+
+      {/* Modal Confirmación + Guía: Cargar Pedido con Excel */}
+      {showImportConfirmModal && (
+        <div className="modal-overlay" onClick={() => setShowImportConfirmModal(false)}>
+          <div className="modal modal--md" onClick={(e) => e.stopPropagation()}>
+            <div className="modal__header">
+              <h3 className="d-flex align-items-center gap-2">
+                <FontAwesomeIcon icon={faFileUpload} className="text-primary" />
+                Cargar Pedido con Excel
+              </h3>
+              <button
+                type="button"
+                className="modal__close"
+                onClick={() => setShowImportConfirmModal(false)}
+                aria-label="Cerrar modal"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="modal__body" style={{ maxHeight: '65vh', overflowY: 'auto' }}>
+              <p className="mb-3">
+                ¿Estás seguro de que deseas importar un archivo Excel para cargar productos directamente a tu carrito?
+              </p>
+
+              <ExcelImportGuideTables />
+
+              <ul className="mt-4" style={{ paddingLeft: '1.25rem', fontSize: 'var(--text-xs)' }}>
+                {EXCEL_IMPORT_GUIDE_ITEMS.map((item, idx) => (
+                  <li key={idx} className="mb-1">{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="modal__footer">
+              <button
+                type="button"
+                className="btn btn--secondary"
+                onClick={() => setShowImportConfirmModal(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={handleConfirmImportPicker}
+              >
+                Seleccionar Archivo Excel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Confirmación: Descargar Catálogo Excel */}
+      {showExportConfirmModal && (
+        <div className="modal-overlay" onClick={() => setShowExportConfirmModal(false)}>
+          <div className="modal modal--sm" onClick={(e) => e.stopPropagation()}>
+            <div className="modal__header">
+              <h3 className="d-flex align-items-center gap-2">
+                <FontAwesomeIcon icon={faFileDownload} className="text-primary" />
+                Descargar Catálogo Excel
+              </h3>
+              <button
+                type="button"
+                className="modal__close"
+                onClick={() => setShowExportConfirmModal(false)}
+                aria-label="Cerrar modal"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="modal__body">
+              <p className="mb-3">
+                ¿Estás seguro de que deseas descargar tu catálogo de productos en formato Excel (<code>.xlsx</code>)?
+              </p>
+              <p className="text-muted text-sm">
+                Podrás escribir las cantidades que deseas pedir en la columna <strong>Pedido</strong> y volver a subir ese mismo archivo desde <em>Cargar Pedido con Excel</em>.
+              </p>
+            </div>
+            <div className="modal__footer">
+              <button
+                type="button"
+                className="btn btn--secondary"
+                onClick={() => setShowExportConfirmModal(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => {
+                  setShowExportConfirmModal(false);
+                  handleExportCatalog();
+                }}
+              >
+                Descargar Excel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Cambiar Contraseña */}
       <ModalChangePassword isOpen={showPasswordModal} onClose={() => setShowPasswordModal(false)} />
