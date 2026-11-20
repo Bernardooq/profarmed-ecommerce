@@ -289,9 +289,12 @@
     grid-template-columns: 1fr;
     gap: var(--space-10);
     align-items: center;
+    max-width: 1080px;
+    margin: 0 auto;
 
     @include tablet {
         grid-template-columns: 1fr 1fr;
+        gap: var(--space-12);
     }
 
     &__visual {

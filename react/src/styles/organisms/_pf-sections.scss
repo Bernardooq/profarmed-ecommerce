@@ -409,32 +409,37 @@
 
     .pf-split {
         align-items: end;
+        max-width: 1080px;
+        margin: 0 auto;
+
+        @include tablet {
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-12);
+        }
     }
 
     .pf-split__body {
         padding-bottom: var(--space-14, 3.5rem);
-
-        @include desktop {
-            padding-left: clamp(3rem, 5vw, 5.5rem);
-        }
     }
 
     .pf-split__media {
         align-items: flex-end;
         align-self: end;
+        justify-content: flex-end;
         min-height: 0;
 
         picture {
             display: flex;
             align-items: flex-end;
-            justify-content: center;
+            justify-content: flex-end;
+            width: 100%;
         }
 
         img {
             display: block;
             max-height: 440px;
             object-fit: contain;
-            object-position: bottom center;
+            object-position: bottom right;
         }
     }
 }
