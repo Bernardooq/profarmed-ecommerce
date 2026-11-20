@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -23,7 +23,7 @@ import useHasPromoAds from '../../hooks/useHasPromoAds';
 
 export default function SidebarDrawer({ isOpen, onClose }) {
   const { user, isAuthenticated, logout } = useAuth();
-  const { itemCount } = useCart();
+  const { itemCount, importFromExcel } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
@@ -33,6 +33,8 @@ export default function SidebarDrawer({ isOpen, onClose }) {
   const [showOffersModal, setShowOffersModal] = useState(false);
   const [captureOpen, setCaptureOpen] = useState(true);
   const [exportingCatalog, setExportingCatalog] = useState(false);
+  const [importingExcel, setImportingExcel] = useState(false);
+  const excelInputRef = useRef(null);
   const [pendingContactCount, setPendingContactCount] = useState(0);
   const [pendingClientCount, setPendingClientCount] = useState(0);
   const [pendingTicketsCount, setPendingTicketsCount] = useState(0);
@@ -131,6 +133,43 @@ export default function SidebarDrawer({ isOpen, onClose }) {
       console.error('Error al descargar catálogo Excel:', err);
     } finally {
       setExportingCatalog(false);
+    }
+  };
+
+  const handleSidebarImportClick = () => {
+    if (!isAuthenticated) {
+      handleNav('/login');
+      return;
+    }
+    excelInputRef.current?.click();
+  };
+
+  const handleSidebarFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setImportingExcel(true);
+      const result = await importFromExcel(file);
+      if (window.innerWidth < 1024) {
+        onClose();
+      }
+      navigate('/cart', {
+        state: {
+          importNotifications: result?.notifications || [],
+        },
+      });
+    } catch (err) {
+      console.error('Error al importar Excel desde menú:', err);
+      navigate('/cart', {
+        state: {
+          importNotifications: [err.message || 'Error al importar Excel'],
+        },
+      });
+    } finally {
+      setImportingExcel(false);
+      if (excelInputRef.current) {
+        excelInputRef.current.value = '';
+      }
     }
   };
 
@@ -290,11 +329,13 @@ export default function SidebarDrawer({ isOpen, onClose }) {
                         </button>
 
                         <button
-                          className={`sidebar-drawer__subitem ${isCurrentPath('/cart') ? 'sidebar-drawer__item--active' : ''}`}
-                          onClick={() => handleNav('/cart')}
+                          type="button"
+                          className="sidebar-drawer__subitem"
+                          onClick={handleSidebarImportClick}
+                          disabled={importingExcel}
                         >
                           <FontAwesomeIcon icon={faFileUpload} className="sidebar-drawer__icon" />
-                          <span>Cargar Pedido con Excel</span>
+                          <span>{importingExcel ? 'Importando...' : 'Cargar Pedido con Excel'}</span>
                         </button>
 
                         {isCustomer && (
@@ -411,6 +452,14 @@ export default function SidebarDrawer({ isOpen, onClose }) {
           </div>
         </aside>
       </div>
+
+      <input
+        type="file"
+        ref={excelInputRef}
+        style={{ display: 'none' }}
+        accept=".xlsx, .xls"
+        onChange={handleSidebarFileChange}
+      />
 
       {/* Modal Cambiar Contraseña */}
       <ModalChangePassword isOpen={showPasswordModal} onClose={() => setShowPasswordModal(false)} />
