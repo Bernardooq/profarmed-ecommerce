@@ -215,6 +215,45 @@ def get_cart_item_count(db: Session, customer_id: int) -> int:
         CartCache.customer_id == customer_id
     ).scalar() or 0
 
+def _normalize_excel_header(val) -> str:
+    if pd.isna(val):
+        return ""
+    s = str(val).strip().lower()
+    for src, dst in (("á", "a"), ("é", "e"), ("í", "i"), ("ó", "o"), ("ú", "u")):
+        s = s.replace(src, dst)
+    return s
+
+
+def _detect_excel_columns(df: pd.DataFrame) -> tuple[int, int, int]:
+    """
+    Detecta automaticamente el formato del Excel:
+    - Formato 1 (Rapido A/B): Columna 0 = Codigo Barras, Columna 1 = Cantidad (con o sin encabezado).
+    - Formato 2 (Catalogo descargado): Encabezados 'Codigo Barras' y 'Pedido' (o 'Cantidad') en cualquier columna.
+    Retorna (codebar_col_idx, qty_col_idx, start_row_idx).
+    """
+    if df.empty:
+        return 0, 1, 0
+
+    first_row = df.iloc[0]
+    barcode_aliases = {"codigo barras", "codigo de barras", "codebar", "cod. barras", "cod barras", "barras"}
+    qty_aliases = {"pedido", "pedidos", "cantidad", "qty", "cant"}
+
+    codebar_col = None
+    qty_col = None
+
+    for idx, val in enumerate(first_row):
+        norm = _normalize_excel_header(val)
+        if codebar_col is None and norm in barcode_aliases:
+            codebar_col = idx
+        elif qty_col is None and norm in qty_aliases:
+            qty_col = idx
+
+    if codebar_col is not None and qty_col is not None:
+        return codebar_col, qty_col, 1
+
+    return 0, 1, 0
+
+
 """Importa productos al carrito desde un archivo Excel"""
 def import_cart_from_excel(db: Session, customer_id: int, file_content: bytes) -> dict:
     try:
@@ -222,22 +261,24 @@ def import_cart_from_excel(db: Session, customer_id: int, file_content: bytes) -
     except Exception as e:
         raise ValueError(f"Error al leer el archivo Excel: {str(e)}")
 
+    codebar_col_idx, qty_col_idx, start_row = _detect_excel_columns(df)
     notifications = []
     
-    for index, row in df.iterrows():
-        # Validar que existan al menos 2 columnas
-        if len(row) < 2:
+    for index in range(start_row, len(df)):
+        row = df.iloc[index]
+        # Validar que existan las columnas necesarias
+        if len(row) <= max(codebar_col_idx, qty_col_idx):
             continue
             
-        codebar_raw = row[0]
-        qty_raw = row[1]
+        codebar_raw = row.iloc[codebar_col_idx]
+        qty_raw = row.iloc[qty_col_idx]
         
         # Ignorar filas vacías o donde la cantidad no sea un número (posible header)
         if pd.isna(codebar_raw) or pd.isna(qty_raw):
             continue
             
         try:
-            qty = int(qty_raw)
+            qty = int(float(qty_raw))
             if qty <= 0:
                 continue
         except (ValueError, TypeError):

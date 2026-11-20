@@ -145,7 +145,7 @@ def export_catalog_xlsx(
     if show_confidential_columns:
         headers = ["ID", "Código Barras", "Nombre", "Descripción", "Precio Base", "Markup %", "IVA %", "IVA $", "Precio Final", "Stock"]
     else:
-        headers = ["ID", "Código Barras", "Nombre", "Piezas por caja", "Precio Final", "Stock"]
+        headers = ["ID", "Código Barras", "Nombre", "Piezas por caja", "Precio Final", "Stock", "Pedido"]
 
     ws.append(headers)
     for col_idx, _ in enumerate(headers, 1):
@@ -187,7 +187,8 @@ def export_catalog_xlsx(
                 product.name,
                 compra_estandar,
                 float(final_price),
-                product.stock_count
+                product.stock_count,
+                ""
             ])
 
     for col in ws.columns:

@@ -235,7 +235,7 @@ export default function Cart() {
                   title="Ayuda: Importación Excel"
                   description={
                     <div className="mt-2">
-                      <p className="mb-2">Ejemplo del formato esperado:</p>
+                      <p className="mb-2"><strong>Opción 1 — Formato rápido (2 columnas):</strong></p>
                       <table className="excel-simulator">
                         <thead>
                           <tr>
@@ -287,12 +287,50 @@ export default function Cart() {
                           </tr>
                         </tbody>
                       </table>
+
+                      <p className="mt-4 mb-2"><strong>Opción 2 — Catálogo descargado:</strong></p>
+                      <table className="excel-simulator">
+                        <thead>
+                          <tr>
+                            <th></th>
+                            <th>B (Código Barras)</th>
+                            <th>...</th>
+                            <th>G (Pedido)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="excel-simulator__header-row">
+                            <td className="excel-simulator__col-header">1</td>
+                            <td>Código Barras</td>
+                            <td>...</td>
+                            <td>Pedido</td>
+                          </tr>
+                          <tr>
+                            <td className="excel-simulator__col-header">2</td>
+                            <td>75010011</td>
+                            <td>...</td>
+                            <td>12</td>
+                          </tr>
+                          <tr>
+                            <td className="excel-simulator__col-header">3</td>
+                            <td>75010022</td>
+                            <td>...</td>
+                            <td></td>
+                          </tr>
+                          <tr>
+                            <td className="excel-simulator__col-header">4</td>
+                            <td>75010033</td>
+                            <td>...</td>
+                            <td>24</td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   }
                   items={[
                     "Formato: El archivo debe ser .xlsx o .xls.",
-                    "Columnas: Solo necesitas dos columnas: Código de Barras (Columna A) y Cantidad (Columna B).",
-                    "Encabezado: No es obligatorio, el sistema lee desde la primera fila.",
+                    "Opción 1 (Rápido): Solo dos columnas: Código de Barras (Columna A) y Cantidad (Columna B). El encabezado no es obligatorio.",
+                    "Opción 2 (Catálogo descargado): Descarga tu catálogo desde Productos, escribe las cantidades en la columna 'Pedido' y sube ese mismo archivo. Las filas vacías se omitirán automáticamente.",
                     "Validación: El sistema verificará automáticamente el stock y si el producto está activo."
                   ]}
                 />
@@ -479,8 +517,8 @@ export default function Cart() {
               ) : (
                 <ul className="notification-list">
                   {importNotifications.map((notif, idx) => {
-                    const isSuccess = notif.includes('✅');
-                    const isWarning = notif.includes('⚠️');
+                    const isSuccess = notif.includes('✅') || notif.includes('unidades agregadas');
+                    const isWarning = notif.includes('⚠️') || notif.includes('Cantidad ajustada');
                     const type = isSuccess ? 'success' : (isWarning ? 'warning' : 'error');
 
                     return (

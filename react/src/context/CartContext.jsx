@@ -135,8 +135,9 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Computed values
-  const itemCount = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  // Computed values (itemCount = SKUs distintos cargados en el carrito)
+  const itemCount = items.length;
+  const totalPieces = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
   const total = items.reduce((sum, item) => {
     const price = item.final_price ?? item.price_at_addition ?? item.product?.final_price ?? item.product?.base_price ?? item.product?.price ?? 0;
     const quantity = item.quantity || 0;

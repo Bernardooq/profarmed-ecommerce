@@ -94,9 +94,12 @@ export default function SearchBar() {
             {isSidebarOpen && !isAuthenticated && (
               <Link to="/login" className="btn btn--primary btn--sm">Acceder</Link>
             )}
-            <Link to="/cart" className="header__cart-link" title="Ver carrito">
-              <FontAwesomeIcon icon={faCartShopping} />
-              {itemCount > 0 && <span className="header__cart-badge">{itemCount}</span>}
+            <Link to="/cart" className="header__cart-link" title="Mi Carrito">
+              <span className="header__cart-icon-wrap">
+                <FontAwesomeIcon icon={faCartShopping} />
+                {itemCount > 0 && <span className="header__cart-badge">{itemCount}</span>}
+              </span>
+              <span className="header__cart-label">Mi Carrito</span>
             </Link>
           </div>
         </div>
