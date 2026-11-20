@@ -143,6 +143,7 @@ def sync_products(
             "is_active": p.is_active if p.is_active is not None else True,
             "category_name": p.category_name or None,
             "image_url": p.image_url or None,
+            "created_at": p.created_at or None,
             "updated_at": p.updated_at or None,
         }
         for p in products

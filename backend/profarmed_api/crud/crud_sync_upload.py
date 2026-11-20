@@ -83,6 +83,21 @@ def _build_sync_summary(created: int, updated: int, errors: int = 0, **extra) ->
 # ============================================================================
 
 
+def _parse_optional_datetime(val):
+    """Parsea datetime opcional (objeto datetime o string ISO) preservando UTC."""
+    if val is None or val == "":
+        return None
+    if isinstance(val, datetime):
+        return val if val.tzinfo is not None else val.replace(tzinfo=timezone.utc)
+    if isinstance(val, str):
+        try:
+            dt = datetime.fromisoformat(val.strip().replace("Z", "+00:00"))
+            return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
+        except ValueError:
+            return None
+    return None
+
+
 def process_products_from_json(
     categories: List[str] = None,
     products: List[Dict] = None,
@@ -124,6 +139,11 @@ def process_products_from_json(
     # 2. UPSERT Productos (omitiendo lock == True y deduplicando por product_id)
     logger.info(f"Upserting {len(products)} products...")
     locked_pids = _get_locked_product_ids(db)
+    all_pids = [str(p.get("product_id")).strip() for p in products if p.get("product_id") is not None]
+    existing_created_rows = db.query(Product.product_id, Product.created_at).filter(
+        Product.product_id.in_(all_pids)
+    ).all() if all_pids else []
+    existing_created_map = {row.product_id: row.created_at for row in existing_created_rows}
 
     products_by_id = {}
     skipped_locked_count = 0
@@ -138,6 +158,14 @@ def process_products_from_json(
             continue
 
         category_id = cat_map.get(p.get("category_name")) if p.get("category_name") else None
+        incoming_created_at = _parse_optional_datetime(p.get("created_at"))
+        if incoming_created_at is not None:
+            resolved_created_at = incoming_created_at
+        elif prod_id in existing_created_map:
+            resolved_created_at = existing_created_map[prod_id] or sync_time
+        else:
+            resolved_created_at = sync_time
+
         products_by_id[prod_id] = {
             "product_id": prod_id,
             "codebar": str(p.get("codebar")).strip() if p.get("codebar") else None,
@@ -151,7 +179,8 @@ def process_products_from_json(
             "stock_count": int(p.get("stock_count", 0)),
             "is_active": True,
             "category_id": category_id,
-            "updated_at": sync_time,
+            "created_at": resolved_created_at,
+            "updated_at": _parse_optional_datetime(p.get("updated_at")) or sync_time,
         }
 
     if skipped_locked_count > 0:
@@ -179,6 +208,7 @@ def process_products_from_json(
                         (and_(stmt.excluded.image_url.isnot(None), stmt.excluded.image_url != ""), stmt.excluded.image_url),
                         else_=Product.image_url,
                     ),
+                    "created_at": stmt.excluded.created_at,
                     "updated_at": stmt.excluded.updated_at,
                 },
             )

@@ -71,7 +71,8 @@ def save_or_update_category(
                 index_elements=["name"],
                 set_={
                     "description": stmt.excluded.description,
-                    "updated_at": stmt.excluded.updated_at,
+                    "created_at": stmt.excluded.created_at,
+                "updated_at": stmt.excluded.updated_at,
                 },
             ).returning(Category.category_id, (column("xmax") == 0).label("is_insert"))
 
@@ -138,6 +139,21 @@ def save_or_update_price_list(
 # ============================================================================
 
 
+def _parse_optional_datetime(val):
+    """Parsea datetime opcional (objeto datetime o string ISO) preservando UTC."""
+    if val is None or val == "":
+        return None
+    if isinstance(val, datetime):
+        return val if val.tzinfo is not None else val.replace(tzinfo=timezone.utc)
+    if isinstance(val, str):
+        try:
+            dt = datetime.fromisoformat(val.strip().replace("Z", "+00:00"))
+            return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
+        except ValueError:
+            return None
+    return None
+
+
 def bulk_sync_products(db: Session, products: List[dict]) -> Tuple[int, int, List[str]]:
     """Bulk UPSERT de productos respetando productos bloqueados (lock == True)."""
     if not products:
@@ -150,17 +166,27 @@ def bulk_sync_products(db: Session, products: List[dict]) -> Tuple[int, int, Lis
         cat_map = {c.name: c.category_id for c in categories}
 
         product_ids = [p.get("product_id") for p in products if p.get("product_id")]
-        existing_products = db.query(Product.product_id, Product.lock).filter(
+        existing_products = db.query(Product.product_id, Product.lock, Product.created_at).filter(
             Product.product_id.in_(product_ids)
         ).all() if product_ids else []
         locked_ids = {p.product_id for p in existing_products if p.lock}
         existing_ids = {p.product_id for p in existing_products}
+        existing_created_map = {p.product_id: p.created_at for p in existing_products}
+        now_utc = datetime.now(timezone.utc)
 
         prod_by_id = {}
         for p in products:
             p_id = p.get("product_id")
             if not p_id or p_id in locked_ids:
                 continue
+
+            incoming_created_at = _parse_optional_datetime(p.get("created_at"))
+            if incoming_created_at is not None:
+                resolved_created_at = incoming_created_at
+            elif p_id in existing_ids:
+                resolved_created_at = existing_created_map.get(p_id) or now_utc
+            else:
+                resolved_created_at = now_utc
 
             prod_by_id[p_id] = {
                 "product_id": p_id,
@@ -175,7 +201,8 @@ def bulk_sync_products(db: Session, products: List[dict]) -> Tuple[int, int, Lis
                 "is_active": p.get("is_active", True),
                 "category_id": cat_map.get(p.get("category_name")),
                 "image_url": p.get("image_url"),
-                "updated_at": p.get("updated_at") or datetime.now(timezone.utc),
+                "created_at": resolved_created_at,
+                "updated_at": _parse_optional_datetime(p.get("updated_at")) or now_utc,
             }
 
         prod_data_list = list(prod_by_id.values())

@@ -113,6 +113,7 @@ class ProductCreate2(BaseModel):
     is_active: bool = True  # Si el producto esta visible
     lock: bool = False  # Estado de bloqueo / lock
     category_name: Optional[str] = None  # Nombre de la categoria
+    created_at: Optional[datetime] = None  # Fecha de creacion / alta en formato timestamp
     updated_at: Optional[datetime] = None  # Fecha de ultima actualizacion en formato timestamp
 
 
@@ -208,4 +209,4 @@ class ProductStockHoldsResponse(BaseModel):
     product_name: str
     total_holds: int
     total_quantity: int
-    items: List[ProductStockHoldItem]
+    items: List[ProductStockHoldItem]
