@@ -18,7 +18,7 @@ export default function Header2() {
   const { theme, toggleTheme } = useTheme();
   const { isSidebarOpen, toggleSidebar, closeSidebar } = useSidebar();
 
-  const { getDashboardPath } = usePermissions();
+  const { getDashboardPath, isCustomer } = usePermissions();
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
@@ -65,7 +65,7 @@ export default function Header2() {
           </div>
 
           <nav className="header__nav">
-            {!isOnDashboard && (
+            {!isCustomer && !isOnDashboard && (
               <Link to={getDashboardLink()} className="btn btn--primary btn--sm">
                 <FontAwesomeIcon icon={faShieldAlt} className="mr-1" />
                 {getDashboardLabel()}
