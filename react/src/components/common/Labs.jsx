@@ -32,10 +32,12 @@ export default function Labs() {
     <section className="pf-section pf-section--light">
       <div className="pf-section__container">
         <div className="pf-section__header">
-          <h2 className="pf-section__title">{labsContent.title}</h2>
-          <div className="pf-divider">
-            <span className="pf-divider__primary" />
-            <span className="pf-divider__secondary" />
+          <div className="pf-section__title-wrap">
+            <h2 className="pf-section__title">{labsContent.title}</h2>
+            <div className="pf-divider">
+              <span className="pf-divider__primary" />
+              <span className="pf-divider__secondary" />
+            </div>
           </div>
           {labsContent.subtitle && (
             <p className="pf-section__subtitle">{labsContent.subtitle}</p>
